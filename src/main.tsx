@@ -10,8 +10,6 @@ import { RouterProvider, createBrowserRouter } from "react-router-dom";
 
 const App = lazy(() => import("./App"));
 const Home = lazy(() => import("./Pages/Home"));
-const Signup = lazy(() => import("./Pages/Signup"));
-const Login = lazy(() => import("./Pages/Login"));
 
 const browserRouter = createBrowserRouter([
   {
@@ -21,14 +19,6 @@ const browserRouter = createBrowserRouter([
   {
     path: "/home",
     element: <Home />,
-  },
-  {
-    path: "/signup",
-    element: <Signup />,
-  },
-  {
-    path: "/login",
-    element: <Login />,
   },
 ]);
 

@@ -20,6 +20,7 @@ import { open } from "@tauri-apps/api/dialog";
 import { useEffect, useState } from "react";
 import { notifications } from "@mantine/notifications";
 import { store } from "../../Utils/db";
+import { Progressbar } from "../../Components/Progress";
 
 // type Entries = [string, Entry];
 
@@ -35,30 +36,12 @@ type OtpObject = {
 };
 
 export default function Home() {
-  const [opened, { open: openModal, close: closeModal }] = useDisclosure();
+  const [qrOpened, { open: openQrModal, close: closeQrModal }] =
+    useDisclosure();
   const [manualOpened, { open: openManual, close: closeManual }] =
     useDisclosure();
 
-  const [time, setTime] = useState(() => {
-    let currentSeconds = Math.floor(Date.now() / 1000);
-    return 30 - (currentSeconds % 30);
-  });
-
   const [entries, setEntries] = useState<OtpObject[]>([]);
-
-  useEffect(() => {
-    let currentSeconds = Math.floor(Date.now() / 1000);
-    let time = 30 - (currentSeconds % 30);
-    const interval = setInterval(() => {
-      currentSeconds = Math.floor(Date.now() / 1000);
-      time = 30 - (currentSeconds % 30);
-      setTime(time);
-    }, 1000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
 
   useEffect(() => {
     async function init() {
@@ -83,7 +66,7 @@ export default function Home() {
   }, []);
 
   const openQr = () => {
-    closeModal();
+    closeQrModal();
 
     open({
       directory: false,
@@ -141,11 +124,34 @@ export default function Home() {
     });
   };
 
+  const afterClose = async (newEntry: OtpObject) => {
+    const newEntryWithoutSecret: Partial<OtpObject> = { ...newEntry };
+    delete newEntryWithoutSecret.secret;
+
+    const entriesWithoutSecret = entries.map((e: Partial<OtpObject>) => {
+      let copy = { ...e };
+      delete copy.secret;
+      return copy;
+    });
+    await store.set("entries", [
+      ...entriesWithoutSecret,
+      newEntryWithoutSecret,
+    ]);
+    await store.save();
+
+    await invoke("add_secret", {
+      label: newEntry.label,
+      secret: newEntry.secret,
+    });
+
+    setEntries([...entries, newEntry]);
+  };
+
   return (
     <Box h="100%">
       <Group p="md" justify="space-around" wrap="nowrap">
         <TextInput radius={"sm"} placeholder="Search" w={"80%"} />
-        <Button rightSection={"+"} onClick={openModal} variant="light">
+        <Button rightSection={"+"} onClick={openQrModal} variant="light">
           Add New{" "}
         </Button>
       </Group>
@@ -175,11 +181,11 @@ export default function Home() {
         ))}
       </Grid>
 
-      <Modal onClose={closeModal} opened={opened} title="Select method">
+      <Modal onClose={closeQrModal} opened={qrOpened} title="Select method">
         <Stack p="xl">
           <Button
             onClick={() => {
-              closeModal();
+              closeQrModal();
               openManual();
             }}
             variant="light"
@@ -194,48 +200,11 @@ export default function Home() {
 
       <ManualModal
         opened={manualOpened}
-        afterClose={async (newEntry: OtpObject) => {
-          const newEntryWithoutSecret: Partial<OtpObject> = { ...newEntry };
-          delete newEntryWithoutSecret.secret;
-
-          const entriesWithoutSecret = entries.map((e: Partial<OtpObject>) => {
-            let copy = { ...e };
-            delete copy.secret;
-            return copy;
-          });
-          await store.set("entries", [
-            ...entriesWithoutSecret,
-            newEntryWithoutSecret,
-          ]);
-          await store.save();
-
-          await invoke("add_secret", {
-            label: newEntry.label,
-            secret: newEntry.secret,
-          });
-
-          setEntries([...entries, newEntry]);
-        }}
+        afterClose={afterClose}
         onClose={closeManual}
       />
 
-      <Progress.Root
-        size={"xl"}
-        radius={0}
-        style={{
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          right: 0,
-        }}
-      >
-        <Progress.Section
-          color={time < 10 ? "red" : "blue"}
-          value={(time / 30) * 100}
-        >
-          <Progress.Label>{time}</Progress.Label>
-        </Progress.Section>
-      </Progress.Root>
+      <Progressbar />
     </Box>
   );
 }

@@ -20,7 +20,6 @@ import { open } from "@tauri-apps/api/dialog";
 import { useEffect, useState } from "react";
 import { notifications } from "@mantine/notifications";
 import { store } from "../../Utils/db";
-import { Progressbar } from "../../Components/Progress";
 
 // type Entries = [string, Entry];
 
@@ -41,7 +40,26 @@ export default function Home() {
   const [manualOpened, { open: openManual, close: closeManual }] =
     useDisclosure();
 
+  const [time, setTime] = useState(() => {
+    let currentSeconds = Math.floor(Date.now() / 1000);
+    return 30 - (currentSeconds % 30);
+  });
+
   const [entries, setEntries] = useState<OtpObject[]>([]);
+
+  useEffect(() => {
+    let currentSeconds = Math.floor(Date.now() / 1000);
+    let time = 30 - (currentSeconds % 30);
+    const interval = setInterval(() => {
+      currentSeconds = Math.floor(Date.now() / 1000);
+      time = 30 - (currentSeconds % 30);
+      setTime(time);
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     async function init() {
@@ -204,7 +222,26 @@ export default function Home() {
         onClose={closeManual}
       />
 
-      <Progressbar />
+      <Progress.Root
+        size={"xl"}
+        radius={0}
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          right: 0,
+        }}
+      >
+        <Progress.Section
+          color={time < 10 ? "red" : "blue"}
+          value={(time / 30) * 100}
+          style={{
+            transition: `width ${time === 0 ? "10ms" : "1s"} linear`,
+          }}
+        >
+          <Progress.Label>{time}</Progress.Label>
+        </Progress.Section>
+      </Progress.Root>
     </Box>
   );
 }

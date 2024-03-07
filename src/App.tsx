@@ -1,17 +1,8 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
-import {
-  Button,
-  Card,
-  PasswordInput,
-  Stack,
-  Text,
-  TextInput,
-  Title,
-} from "@mantine/core";
+import { Button, Card, PasswordInput, Stack, Text, Title } from "@mantine/core";
 
 import { useNavigate } from "react-router-dom";
-import { store } from "./Utils/db";
 import { notifications } from "@mantine/notifications";
 
 type User = {
@@ -21,63 +12,56 @@ type User = {
 
 function App() {
   const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
   const [user, setUser] = useState<User | null>(null);
 
   const navigate = useNavigate();
 
   const validate = async () => {
-    let hash = await invoke("get_hash", { password });
     if (user) {
-      let { hash: storedHash } = user;
-
-      try {
-        let res = await invoke("validate", {
-          password,
-          hash: storedHash,
-        });
+      // existing user
+      const res = await invoke("validate_user", { password });
+      if (res === "success") {
         navigate("/home");
-      } catch (e) {
+      } else {
+        console.log("login failed");
         notifications.show({
-          title: "Error",
-          message: "Error validating password",
+          title: "Login failed",
+          message: "Invalid password",
           color: "red",
         });
       }
     } else {
-      await store.set("user", { username, hash });
-      await store.save();
-      navigate("/home");
+      // new user
+      const res = await invoke("create_user", { password });
+      if (res === "success") {
+        navigate("/home");
+      } else {
+        console.log("create failed");
+        notifications.show({
+          title: "Create failed",
+          message: "Invalid password",
+          color: "red",
+        });
+      }
     }
   };
 
   useEffect(() => {
-    store
-      .get<User>("user")
-      .then((res) => {
-        if (res?.username && res?.hash) {
-          setUser(res);
-        }
-      })
-      .catch((e) => {
-        console.error("user error", e);
-      });
+    invoke<User | "">("get_user").then((user) => {
+      if (user) setUser(user);
+    });
   }, []);
 
   return (
     <Stack align="center" h="100%" justify="center">
-      <Card shadow="sm" p="lg">
+      <Card shadow="sm" p="lg" w="400px">
         <Stack gap={15}>
           <Title order={4}>Welcome</Title>
-          {user ? (
-            <Text c="dimmed" size="xs">
-              Enter username and password to login
-            </Text>
-          ) : (
-            <Text c="dimmed" size="xs" mb="md">
-              Enter a username and password to create a new account
-            </Text>
-          )}
+          <Text c="dimmed" size="xs" mb="md">
+            {user
+              ? "Enter your password to continue"
+              : "Enter a strong password to create an account."}
+          </Text>
         </Stack>
         <Stack>
           <form
@@ -87,18 +71,13 @@ function App() {
             }}
           >
             <Stack>
-              <TextInput
-                placeholder="username"
-                value={username}
-                onChange={(e) => setUsername(e.currentTarget.value)}
-              />
               <PasswordInput
                 placeholder="master password"
                 value={password}
                 onChange={(e) => setPassword(e.currentTarget.value)}
               />
               <Button type="submit" onClick={() => validate()}>
-                Sign up
+                {user ? "Login" : "Create"}
               </Button>
             </Stack>
           </form>

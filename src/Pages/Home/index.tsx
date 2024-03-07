@@ -21,12 +21,18 @@ import { useEffect, useState } from "react";
 import { notifications } from "@mantine/notifications";
 import { store } from "../../Utils/db";
 
-type Entries = {
-  secret: string;
-  label: string;
-};
-
 // type Entries = [string, Entry];
+
+type OtpObject = {
+  type: string;
+  label: string;
+  issuer: string;
+  secret: string;
+  algorithm: string;
+  digits: string;
+  counter: string;
+  period: string;
+};
 
 export default function Home() {
   const [opened, { open: openModal, close: closeModal }] = useDisclosure();
@@ -38,7 +44,7 @@ export default function Home() {
     return 30 - (currentSeconds % 30);
   });
 
-  const [entries, setEntries] = useState<Entries[]>([]);
+  const [entries, setEntries] = useState<OtpObject[]>([]);
 
   useEffect(() => {
     let currentSeconds = Math.floor(Date.now() / 1000);
@@ -56,8 +62,22 @@ export default function Home() {
 
   useEffect(() => {
     async function init() {
-      const entries = (await store.get<Entries[]>("entries")) || [];
-      setEntries(entries);
+      const entries =
+        (await store.get<Omit<OtpObject, "secret">[]>("entries")) ||
+        ([] as OtpObject[]);
+      if (entries.length === 0) return;
+      invoke<Record<string, string>>("get_secrets", {
+        entries: entries.map((e) => e.label),
+      })
+        .then((res) => {
+          const newEntries = entries.map((e) => {
+            return { ...e, secret: res[e.label] };
+          });
+          setEntries(newEntries);
+        })
+        .catch((e) => {
+          console.error("get_secrets error", e);
+        });
     }
     init();
   }, []);
@@ -73,36 +93,50 @@ export default function Home() {
     }).then(async (res) => {
       let path = res as string;
       if (path) {
-        invoke<string>("read_qr", { path }).then(async (res) => {
-          const parsed = parseOTPAuthURL(res);
-          if (!parsed.secret || !parsed.label) {
-            // throw error maybe
+        invoke<string>("read_qr", { path })
+          .then(async (res) => {
+            const parsed = parseOTPAuthURL(res);
+            if (!parsed.secret || !parsed.label) {
+              // throw error maybe
+              notifications.show({
+                message: "Invalid QR Code",
+                color: "red",
+              });
+              return;
+            }
+
+            let copy: Partial<OtpObject> = { ...parsed };
+            delete copy.secret;
+
+            const entriesWithoutSecret = entries.map(
+              (e: Partial<OtpObject>) => {
+                let copy = { ...e };
+                delete copy.secret;
+                return copy;
+              }
+            );
+
+            await store.set("entries", [...entriesWithoutSecret, copy]);
+            await store.save();
+
+            setEntries([...entries, parsed]);
+
+            await invoke("add_secret", {
+              label: parsed.label,
+              secret: parsed.secret,
+            });
+            notifications.show({
+              message: "Added",
+              color: "green",
+            });
+          })
+          .catch((e) => {
+            console.error("QR error ", e);
             notifications.show({
               message: "Invalid QR Code",
               color: "red",
             });
-            return;
-          }
-
-          if (entries.find((e) => e.secret === parsed.secret)) {
-            notifications.show({
-              message: "Entry already exists",
-              color: "red",
-            });
-            return;
-          }
-
-          await store.set("entries", [
-            ...entries,
-            { secret: parsed.secret, label: parsed.label },
-          ]);
-          await store.save();
-
-          setEntries([
-            ...entries,
-            { secret: parsed.secret, label: parsed.label },
-          ]);
-        });
+          });
       }
     });
   };
@@ -160,9 +194,27 @@ export default function Home() {
 
       <ManualModal
         opened={manualOpened}
-        afterClose={(newEntry: Entries) => {
+        afterClose={async (newEntry: OtpObject) => {
+          const newEntryWithoutSecret: Partial<OtpObject> = { ...newEntry };
+          delete newEntryWithoutSecret.secret;
+
+          const entriesWithoutSecret = entries.map((e: Partial<OtpObject>) => {
+            let copy = { ...e };
+            delete copy.secret;
+            return copy;
+          });
+          await store.set("entries", [
+            ...entriesWithoutSecret,
+            newEntryWithoutSecret,
+          ]);
+          await store.save();
+
+          await invoke("add_secret", {
+            label: newEntry.label,
+            secret: newEntry.secret,
+          });
+
           setEntries([...entries, newEntry]);
-          store.set("entries", [...entries, newEntry]);
         }}
         onClose={closeManual}
       />
@@ -178,7 +230,7 @@ export default function Home() {
         }}
       >
         <Progress.Section
-          color={time < 10 ? "red" : time < 20 ? "orange" : "blue"}
+          color={time < 10 ? "red" : "blue"}
           value={(time / 30) * 100}
         >
           <Progress.Label>{time}</Progress.Label>
@@ -188,7 +240,7 @@ export default function Home() {
   );
 }
 
-function parseOTPAuthURL(url: string) {
+function parseOTPAuthURL(url: string): OtpObject {
   const urlObject = new URL(url);
   const params = new URLSearchParams(urlObject.search);
 
@@ -203,15 +255,16 @@ function parseOTPAuthURL(url: string) {
   let otpObject = {
     type: urlObject.pathname.split("/")[2],
     label: urlObject.pathname.split("/")[3],
-    issuer: params.get("issuer"),
-    secret: params.get("secret"),
+    issuer: params.get("issuer") || "",
+    secret: params.get("secret") || "",
     algorithm: algomap[algorithm],
     digits: params.get("digits") || "6",
     counter: params.get("counter") || "0",
     period: params.get("period") || "30",
   };
+  console.log(otpObject);
 
-  if (!otpObject.secret || !otpObject.issuer) {
+  if (!otpObject.secret || !otpObject.label) {
     throw new Error("Invalid OTPAuth URL");
   }
 
@@ -225,14 +278,23 @@ function ManualModal({
 }: {
   opened: boolean;
   onClose: () => void;
-  afterClose: (newEntry: Entries) => void;
+  afterClose: (newEntry: OtpObject) => void;
 }) {
   const [label, setLabel] = useState("");
   const [secret, setSecret] = useState("");
   const [uri, setUri] = useState("");
 
   const saveManual = async () => {
-    afterClose({ label, secret });
+    afterClose({
+      label,
+      secret,
+      type: "totp",
+      issuer: "",
+      algorithm: "SHA-1",
+      digits: "6",
+      counter: "0",
+      period: "30",
+    });
     onClose();
     // location.reload();
   };

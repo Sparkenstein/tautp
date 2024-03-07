@@ -45,6 +45,8 @@ export default function Home() {
     return 30 - (currentSeconds % 30);
   });
 
+  const [search, setSearch] = useState("");
+
   const [entries, setEntries] = useState<OtpObject[]>([]);
 
   useEffect(() => {
@@ -168,35 +170,45 @@ export default function Home() {
   return (
     <Box h="100%">
       <Group p="md" justify="space-around" wrap="nowrap">
-        <TextInput radius={"sm"} placeholder="Search" w={"80%"} />
+        <TextInput
+          radius={"sm"}
+          placeholder="Search"
+          w={"80%"}
+          value={search}
+          onChange={(e) => setSearch(e.currentTarget.value)}
+        />
         <Button rightSection={"+"} onClick={openQrModal} variant="light">
           Add New{" "}
         </Button>
       </Group>
 
       <Grid p="md">
-        {entries.map((e) => (
-          <Grid.Col
-            span={{
-              xs: 12,
-              sm: 6,
-              md: 4,
-              lg: 3,
-              xl: 2,
-            }}
-            key={e.label}
-          >
-            <Card>
-              <Title>
-                {TOTP.generate(e.secret).otp.replace(
-                  /(\d)(?=(\d{3})+$)/g,
-                  "$1 "
-                )}
-              </Title>
-              <Text>{decodeURIComponent(e.label || "")} </Text>
-            </Card>
-          </Grid.Col>
-        ))}
+        {entries
+          .filter((f) =>
+            search ? f.label.toLowerCase().includes(search.toLowerCase()) : true
+          )
+          .map((e) => (
+            <Grid.Col
+              span={{
+                xs: 12,
+                sm: 6,
+                md: 4,
+                lg: 3,
+                xl: 2,
+              }}
+              key={e.label}
+            >
+              <Card>
+                <Title>
+                  {TOTP.generate(e.secret).otp.replace(
+                    /(\d)(?=(\d{3})+$)/g,
+                    "$1 "
+                  )}
+                </Title>
+                <Text>{decodeURIComponent(e.label || "")} </Text>
+              </Card>
+            </Grid.Col>
+          ))}
       </Grid>
 
       <Modal onClose={closeQrModal} opened={qrOpened} title="Select method">

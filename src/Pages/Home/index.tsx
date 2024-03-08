@@ -1,29 +1,40 @@
 import {
+  ActionIcon,
   Box,
   Button,
   Card,
   Divider,
+  Drawer,
   Grid,
   Group,
   Modal,
+  Paper,
   Progress,
   Stack,
+  Switch,
   Text,
   TextInput,
   Title,
+  rem,
+  useMantineColorScheme,
+  useMantineTheme,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { invoke } from "@tauri-apps/api";
 import { TOTP } from "totp-generator";
 
 import { open } from "@tauri-apps/api/dialog";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { notifications } from "@mantine/notifications";
 import { store } from "../../Utils/db";
+import { IconMoonStars, IconSettings, IconSun } from "@tabler/icons-react";
+import { Sidebar } from "../../Components/Sidebar";
+import { ManualModal } from "../../Components/Modals/ManualEntryModal";
+import { parseOTPAuthURL } from "../../Utils/parseOtpAuthURL";
+import { QrModal } from "../../Components/Modals/QrModal";
+import { useTimer } from "../../Utils/useTimer";
 
-// type Entries = [string, Entry];
-
-type OtpObject = {
+export type OtpObject = {
   type: string;
   label: string;
   issuer: string;
@@ -40,28 +51,16 @@ export default function Home() {
   const [manualOpened, { open: openManual, close: closeManual }] =
     useDisclosure();
 
-  const [time, setTime] = useState(() => {
-    let currentSeconds = Math.floor(Date.now() / 1000);
-    return 30 - (currentSeconds % 30);
-  });
+  const time = useTimer();
 
   const [search, setSearch] = useState("");
 
   const [entries, setEntries] = useState<OtpObject[]>([]);
 
-  useEffect(() => {
-    let currentSeconds = Math.floor(Date.now() / 1000);
-    let time = 30 - (currentSeconds % 30);
-    const interval = setInterval(() => {
-      currentSeconds = Math.floor(Date.now() / 1000);
-      time = 30 - (currentSeconds % 30);
-      setTime(time);
-    }, 1000);
+  const { colorScheme } = useMantineColorScheme();
 
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
+  const [drawerOpened, { open: openDrawer, close: closeDrawer }] =
+    useDisclosure(false);
 
   useEffect(() => {
     async function init() {
@@ -102,7 +101,17 @@ export default function Home() {
             if (!parsed.secret || !parsed.label) {
               // throw error maybe
               notifications.show({
+                title: "Error",
                 message: "Invalid QR Code",
+                color: "red",
+              });
+              return;
+            }
+
+            if (entries.find((e) => e.secret === parsed.secret)) {
+              notifications.show({
+                title: "Error",
+                message: "Entry with same secret already exists",
                 color: "red",
               });
               return;
@@ -129,6 +138,7 @@ export default function Home() {
               secret: parsed.secret,
             });
             notifications.show({
+              title: "Success",
               message: "Added",
               color: "green",
             });
@@ -136,6 +146,7 @@ export default function Home() {
           .catch((e) => {
             console.error("QR error ", e);
             notifications.show({
+              title: "Error",
               message: "Invalid QR Code",
               color: "red",
             });
@@ -145,6 +156,14 @@ export default function Home() {
   };
 
   const afterClose = async (newEntry: OtpObject) => {
+    if (!newEntry.secret || !newEntry.label) {
+      notifications.show({
+        title: "Error",
+        message: "Invalid Entry",
+        color: "red",
+      });
+      return;
+    }
     const newEntryWithoutSecret: Partial<OtpObject> = { ...newEntry };
     delete newEntryWithoutSecret.secret;
 
@@ -167,14 +186,26 @@ export default function Home() {
     setEntries([...entries, newEntry]);
   };
 
+  const calcutatedEntries = useMemo(() => {
+    return entries.map((e) => {
+      return {
+        ...e,
+        otp: TOTP.generate(e.secret).otp.replace(/(\d)(?=(\d{3})+$)/g, "$1 "),
+      };
+    });
+  }, [entries, time < 2]);
+
   return (
-    <Box h="100%">
-      <Group p="md" justify="space-around" wrap="nowrap">
+    <Box h="100%" bg={colorScheme === "dark" ? "dark" : "white"}>
+      <Group p="md" justify="space-around" wrap="nowrap" pt="xl">
+        <ActionIcon variant="light" onClick={openDrawer}>
+          <IconSettings />
+        </ActionIcon>
         <TextInput
           radius={"sm"}
           placeholder="Search"
-          w={"80%"}
           value={search}
+          flex={1}
           onChange={(e) => setSearch(e.currentTarget.value)}
         />
         <Button rightSection={"+"} onClick={openQrModal} variant="light">
@@ -183,7 +214,7 @@ export default function Home() {
       </Group>
 
       <Grid p="md">
-        {entries
+        {calcutatedEntries
           .filter((f) =>
             search ? f.label.toLowerCase().includes(search.toLowerCase()) : true
           )
@@ -198,35 +229,20 @@ export default function Home() {
               }}
               key={e.label}
             >
-              <Card>
-                <Title>
-                  {TOTP.generate(e.secret).otp.replace(
-                    /(\d)(?=(\d{3})+$)/g,
-                    "$1 "
-                  )}
-                </Title>
+              <Paper shadow="xs" radius="md" p="xl">
+                <Title>{e.otp}</Title>
                 <Text>{decodeURIComponent(e.label || "")} </Text>
-              </Card>
+              </Paper>
             </Grid.Col>
           ))}
       </Grid>
 
-      <Modal onClose={closeQrModal} opened={qrOpened} title="Select method">
-        <Stack p="xl">
-          <Button
-            onClick={() => {
-              closeQrModal();
-              openManual();
-            }}
-            variant="light"
-          >
-            Add Manually
-          </Button>
-          <Button onClick={openQr} variant="light">
-            Read QR Code
-          </Button>
-        </Stack>
-      </Modal>
+      <QrModal
+        onClose={closeQrModal}
+        opened={qrOpened}
+        openQrModal={openQr}
+        openManual={openManual}
+      />
 
       <ManualModal
         opened={manualOpened}
@@ -239,119 +255,31 @@ export default function Home() {
         radius={0}
         style={{
           position: "fixed",
-          bottom: 0,
+          top: 0,
           left: 0,
           right: 0,
         }}
       >
         <Progress.Section
-          color={time < 10 ? "red" : "blue"}
+          color={time < 10 ? "red.9" : "teal"}
           value={(time / 30) * 100}
           style={{
-            transition: `width ${time === 0 ? "10ms" : "1s"} linear`,
+            transition: `all ${time === 30 ? "10ms" : "1s"} linear`,
+            // transition: "all 1s linear",
           }}
         >
-          <Progress.Label>{time}</Progress.Label>
+          <Progress.Label>{time}s</Progress.Label>
         </Progress.Section>
       </Progress.Root>
+
+      <Sidebar closeDrawer={closeDrawer} drawerOpened={drawerOpened} />
     </Box>
   );
 }
 
-function parseOTPAuthURL(url: string): OtpObject {
-  const urlObject = new URL(url);
-  const params = new URLSearchParams(urlObject.search);
-
-  const algomap: Record<string, string> = {
-    SHA1: "SHA-1",
-    SHA256: "SHA-256",
-    SHA512: "SHA-512",
-  };
-
-  let algorithm = params.get("algorithm") || "SHA1";
-
-  let otpObject = {
-    type: urlObject.pathname.split("/")[2],
-    label: urlObject.pathname.split("/")[3],
-    issuer: params.get("issuer") || "",
-    secret: params.get("secret") || "",
-    algorithm: algomap[algorithm],
-    digits: params.get("digits") || "6",
-    counter: params.get("counter") || "0",
-    period: params.get("period") || "30",
-  };
-  console.log(otpObject);
-
-  if (!otpObject.secret || !otpObject.label) {
-    throw new Error("Invalid OTPAuth URL");
-  }
-
-  return otpObject;
-}
-
-function ManualModal({
-  opened,
-  onClose,
-  afterClose: afterClose,
-}: {
-  opened: boolean;
-  onClose: () => void;
-  afterClose: (newEntry: OtpObject) => void;
-}) {
-  const [label, setLabel] = useState("");
-  const [secret, setSecret] = useState("");
-  const [uri, setUri] = useState("");
-
-  const saveManual = async () => {
-    afterClose({
-      label,
-      secret,
-      type: "totp",
-      issuer: "",
-      algorithm: "SHA-1",
-      digits: "6",
-      counter: "0",
-      period: "30",
-    });
-    onClose();
-    // location.reload();
-  };
-
-  return (
-    <Modal onClose={onClose} opened={opened} title="Add Manually">
-      <Stack p="xl">
-        <TextInput
-          label="URI"
-          required
-          placeholder={"otpauth://totp/label?secret=secret"}
-          value={uri}
-          onChange={(e) => {
-            setUri(e.currentTarget.value);
-            const parsed = parseOTPAuthURL(e.currentTarget.value);
-            setLabel(parsed.label);
-            setSecret(parsed.secret || "");
-          }}
-        />
-        <Divider label="or" />
-        <TextInput
-          label="Label"
-          required
-          placeholder="Label"
-          value={label}
-          onChange={(e) => setLabel(e.currentTarget.value)}
-        />
-        <TextInput
-          label="Secret"
-          required
-          placeholder="Secret"
-          value={secret}
-          onChange={(e) => setSecret(e.currentTarget.value)}
-        />
-
-        <Button onClick={saveManual} variant="light">
-          Add
-        </Button>
-      </Stack>
-    </Modal>
-  );
-}
+// TODO: icons support
+// TODO: view mode: compact, tiles, cards etc.
+// TODO: cleanup code
+// TODO: add settings
+// TODO: advance config for OTP
+// TODO: tap to reveal

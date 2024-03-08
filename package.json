@@ -13,6 +13,7 @@
     "@mantine/core": "^7.6.1",
     "@mantine/hooks": "^7.6.1",
     "@mantine/notifications": "^7.6.1",
+    "@tabler/icons-react": "^2.47.0",
     "@tauri-apps/api": "^1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

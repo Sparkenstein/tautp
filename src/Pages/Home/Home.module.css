@@ -1,0 +1,18 @@
+.card {
+  &:hover {
+    position: relative;
+
+    .editIcon {
+      display: block;
+    }
+  }
+}
+
+.editIcon {
+  padding: 6px;
+  position: absolute;
+  top: 10;
+  right: 10;
+  cursor: pointer;
+  display: none;
+}

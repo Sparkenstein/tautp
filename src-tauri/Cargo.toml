@@ -1,7 +1,7 @@
 [package]
 name = "totp"
 version = "0.0.0"
-description = "A Tauri App"
+description = "TAUTP - A TOTP MANAGER"
 authors = ["you"]
 edition = "2021"
 

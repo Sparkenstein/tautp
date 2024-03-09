@@ -27,12 +27,14 @@ import { open } from "@tauri-apps/api/dialog";
 import { useEffect, useMemo, useState } from "react";
 import { notifications } from "@mantine/notifications";
 import { store } from "../../Utils/db";
-import { IconMoonStars, IconSettings, IconSun } from "@tabler/icons-react";
+import { IconEdit, IconSettings } from "@tabler/icons-react";
 import { Sidebar } from "../../Components/Sidebar";
 import { ManualModal } from "../../Components/Modals/ManualEntryModal";
 import { parseOTPAuthURL } from "../../Utils/parseOtpAuthURL";
 import { QrModal } from "../../Components/Modals/QrModal";
 import { useTimer } from "../../Utils/useTimer";
+
+import classes from "./Home.module.css";
 
 export type OtpObject = {
   type: string;
@@ -186,6 +188,8 @@ export default function Home() {
     setEntries([...entries, newEntry]);
   };
 
+  const isTimeToRefresh = useMemo(() => time < 2, [time]);
+
   const calcutatedEntries = useMemo(() => {
     return entries.map((e) => {
       return {
@@ -193,10 +197,16 @@ export default function Home() {
         otp: TOTP.generate(e.secret).otp.replace(/(\d)(?=(\d{3})+$)/g, "$1 "),
       };
     });
-  }, [entries, time < 2]);
+  }, [entries, isTimeToRefresh]);
 
   return (
-    <Box h="100%" bg={colorScheme === "dark" ? "dark" : "white"}>
+    <Stack
+      h="100%"
+      bg={colorScheme === "dark" ? "dark" : "white"}
+      style={{
+        overflow: "auto",
+      }}
+    >
       <Group p="md" justify="space-around" wrap="nowrap" pt="xl">
         <ActionIcon variant="light" onClick={openDrawer}>
           <IconSettings />
@@ -273,7 +283,7 @@ export default function Home() {
       </Progress.Root>
 
       <Sidebar closeDrawer={closeDrawer} drawerOpened={drawerOpened} />
-    </Box>
+    </Stack>
   );
 }
 

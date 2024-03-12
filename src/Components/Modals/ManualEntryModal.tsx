@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { memo, useContext, useState } from "react";
 import type { OtpObject } from "../../Pages/Home";
 import { Button, Divider, Modal, Stack, TextInput } from "@mantine/core";
 import { parseOTPAuthURL } from "../../Utils/parseOtpAuthURL";
@@ -10,22 +10,44 @@ import { TOTP } from "totp-generator";
 type ManualModalProps = {
   opened: boolean;
   onClose: () => void;
+  entity?: OtpObject;
 };
 
-export function ManualModal({ opened, onClose }: ManualModalProps) {
+export function ManualModalBase({ opened, onClose, entity }: ManualModalProps) {
   const { entries, setEntries } = useContext(AppContext);
-  const [label, setLabel] = useInputState("");
-  const [secret, setSecret] = useInputState("");
-  const [issuer, setIssuer] = useInputState("");
+  const [label, setLabel] = useInputState(entity?.label || "");
+  const [secret, setSecret] = useInputState(entity?.secret || "");
+  const [issuer, setIssuer] = useInputState(entity?.issuer || "");
 
   // TODO: add support for these
   const algorithm = "SHA-1";
   const digits = "6";
   const period = "30";
 
-  const [uri, setUri] = useState("");
+  const isEditing = !!entity;
+  console.log({ entity });
+
+  // const [uri, setUri] = useState("");
 
   const saveManual = async () => {
+    if (isEditing) {
+      const changed = entries.map((e) => {
+        if (e.id === entity?.id) {
+          return {
+            ...e,
+            label,
+            issuer,
+            secret,
+          };
+        }
+        return e;
+      });
+      await recordEntity(changed, label, secret);
+      setEntries(changed);
+      onClose();
+      return;
+    }
+
     let newEntry: OtpObject = {
       label,
       issuer,
@@ -45,7 +67,7 @@ export function ManualModal({ opened, onClose }: ManualModalProps) {
   return (
     <Modal onClose={onClose} opened={opened} title="Add Manually">
       <Stack p="xl">
-        <TextInput
+        {/* <TextInput
           label="URI"
           required
           placeholder={"otpauth://totp/label?secret=secret"}
@@ -57,7 +79,7 @@ export function ManualModal({ opened, onClose }: ManualModalProps) {
             setSecret(parsed.secret || "");
           }}
         />
-        <Divider label="or" />
+        <Divider label="or" /> */}
         <TextInput
           label="Label"
           required
@@ -87,3 +109,7 @@ export function ManualModal({ opened, onClose }: ManualModalProps) {
     </Modal>
   );
 }
+
+export const ManualModal = memo(ManualModalBase, (prev, next) => {
+  return prev.opened === next.opened;
+});

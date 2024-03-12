@@ -25,7 +25,6 @@ export function Card({ e }: CardProps) {
         <IconEdit />
       </ActionIcon>
 
-      {/* <EditModal entity={e} opened={opened} onClose={close} /> */}
       <ManualModal opened={opened} onClose={close} entity={e} />
     </Paper>
   );

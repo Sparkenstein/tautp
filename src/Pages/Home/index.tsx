@@ -4,7 +4,7 @@ import { useTimer } from "../../Utils/useTimer";
 import { ProgressBar } from "./Components/Progress";
 import { MainModal } from "../../Components/Modals/MainModal";
 import { useDisclosure } from "@mantine/hooks";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { store } from "../../Utils/db";
 import { invoke } from "@tauri-apps/api";
 import { Card } from "./Components/Card";
@@ -36,14 +36,14 @@ export default function Home() {
     async function init() {
       const stored = await store.get<OtpObject[]>("entries");
       if (stored) {
-        const otps = await invoke<Record<string, string>>("get_secrets", {
+        const secrets = await invoke<Record<string, string>>("get_secrets", {
           entries: stored.map((s) => s.label),
         });
         const ents = stored.map((s, i) => {
           return {
             ...s,
             id: i,
-            otp: TOTP.generate(otps[s.label]).otp,
+            secret: secrets[s.label],
           };
         });
         setEntries(ents);
@@ -51,6 +51,15 @@ export default function Home() {
     }
     init();
   }, []);
+
+  const memoisedEntries = useMemo(() => {
+    return entries.map((e) => {
+      return {
+        ...e,
+        otp: TOTP.generate(e.secret).otp,
+      };
+    });
+  }, [entries, time < 2]);
 
   return (
     <Stack
@@ -67,7 +76,7 @@ export default function Home() {
       <ProgressBar time={time} />
 
       <Grid p="md">
-        {entries.map((e) => (
+        {memoisedEntries.map((e) => (
           <Grid.Col
             key={e.id}
             span={{

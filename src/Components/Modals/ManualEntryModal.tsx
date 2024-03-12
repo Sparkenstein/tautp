@@ -1,7 +1,6 @@
 import { memo, useContext, useState } from "react";
 import type { OtpObject } from "../../Pages/Home";
-import { Button, Divider, Modal, Stack, TextInput } from "@mantine/core";
-import { parseOTPAuthURL } from "../../Utils/parseOtpAuthURL";
+import { Button, Modal, Stack, TextInput } from "@mantine/core";
 import { useInputState } from "@mantine/hooks";
 import { recordEntity } from "../../Utils/recordEntity";
 import { AppContext } from "../../Contexts/AppContext";
@@ -25,7 +24,6 @@ export function ManualModalBase({ opened, onClose, entity }: ManualModalProps) {
   const period = "30";
 
   const isEditing = !!entity;
-  console.log({ entity });
 
   // const [uri, setUri] = useState("");
 

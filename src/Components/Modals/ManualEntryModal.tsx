@@ -2,9 +2,10 @@ import { memo, useContext, useState } from "react";
 import type { OtpObject } from "../../Pages/Home";
 import { Button, Modal, Stack, TextInput } from "@mantine/core";
 import { useInputState } from "@mantine/hooks";
-import { recordEntity } from "../../Utils/recordEntity";
+import { deleteEntity, recordEntity } from "../../Utils/recordEntity";
 import { AppContext } from "../../Contexts/AppContext";
 import { TOTP } from "totp-generator";
+import { confirm } from "@tauri-apps/api/dialog";
 
 type ManualModalProps = {
   opened: boolean;
@@ -40,7 +41,7 @@ export function ManualModalBase({ opened, onClose, entity }: ManualModalProps) {
         }
         return e;
       });
-      await recordEntity(changed, label, secret);
+      await recordEntity(changed, label, secret, true);
       setEntries(changed);
       onClose();
       return;
@@ -59,6 +60,17 @@ export function ManualModalBase({ opened, onClose, entity }: ManualModalProps) {
     };
     await recordEntity([...entries, newEntry], label, secret);
     setEntries([...entries, newEntry]);
+    onClose();
+  };
+
+  const deleteEntry = async () => {
+    const confirmation = await confirm(
+      "Deleting entry is irreversible. Are you sure?"
+    );
+    if (confirmation) {
+      const remaining = await deleteEntity(entity!);
+      setEntries(remaining);
+    }
     onClose();
   };
 
@@ -84,6 +96,7 @@ export function ManualModalBase({ opened, onClose, entity }: ManualModalProps) {
           placeholder="Label"
           value={label}
           onChange={setLabel}
+          disabled={isEditing}
         />
 
         <TextInput
@@ -103,6 +116,11 @@ export function ManualModalBase({ opened, onClose, entity }: ManualModalProps) {
         <Button onClick={saveManual} variant="light">
           Add
         </Button>
+        {isEditing && (
+          <Button color="red" onClick={deleteEntry} variant="light">
+            Delete
+          </Button>
+        )}
       </Stack>
     </Modal>
   );

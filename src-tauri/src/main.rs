@@ -15,7 +15,8 @@ fn main() {
             create_user,
             validate_user,
             add_secret,
-            get_secrets
+            get_secrets,
+            remove_secret
         ])
         .setup(|app| {
             // check if debug mode is enabled, open devtools if it is
@@ -109,4 +110,13 @@ fn get_secrets(entries: Vec<String>) -> Result<HashMap<String, String>, String> 
         }
     }
     Ok(secrets)
+}
+
+#[tauri::command]
+fn remove_secret(label: String) -> String {
+    let entry = Entry::new(SERVICE_NAME, &label).unwrap();
+    match entry.delete_password() {
+        Ok(_) => "success".to_string(),
+        Err(_) => "error".to_string(),
+    }
 }

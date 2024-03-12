@@ -7,6 +7,7 @@ import { MantineProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import { AppContextProvider } from "./Contexts/AppContext";
 
 const App = lazy(() => import("./App"));
 const Home = lazy(() => import("./Pages/Home"));
@@ -35,7 +36,9 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
           },
         }}
       />
-      <RouterProvider router={browserRouter} />
+      <AppContextProvider>
+        <RouterProvider router={browserRouter} />
+      </AppContextProvider>
     </MantineProvider>
   </React.StrictMode>
 );

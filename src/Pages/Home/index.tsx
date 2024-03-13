@@ -3,13 +3,14 @@ import { Navbar } from "./Components/Navbar";
 import { useTimer } from "../../Utils/useTimer";
 import { ProgressBar } from "./Components/Progress";
 import { MainModal } from "../../Components/Modals/MainModal";
-import { useDisclosure } from "@mantine/hooks";
+import { useDisclosure, useIdle } from "@mantine/hooks";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { store } from "../../Utils/db";
 import { invoke } from "@tauri-apps/api";
 import { Card } from "./Components/Card";
 import { TOTP } from "totp-generator";
 import { AppContext } from "../../Contexts/AppContext";
+import { useNavigate } from "react-router-dom";
 
 export type OtpObject = {
   id: number;
@@ -28,9 +29,22 @@ export default function Home() {
 
   const { entries, setEntries } = useContext(AppContext);
 
+  const nav = useNavigate();
+
+  const idle = useIdle(10 * 1000, {
+    initialState: false,
+  });
+
   const [mainModalOpen, { open, close }] = useDisclosure();
   const { colorScheme } = useMantineColorScheme();
   const time = useTimer();
+
+  useEffect(() => {
+    if (idle) {
+      console.log("idle");
+      nav("/", { replace: true });
+    }
+  }, [idle]);
 
   useEffect(() => {
     async function init() {

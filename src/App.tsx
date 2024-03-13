@@ -21,7 +21,9 @@ function App() {
       // existing user
       const res = await invoke("validate_user", { password });
       if (res === "success") {
-        navigate("/home");
+        navigate("/home", {
+          replace: true,
+        });
       } else {
         console.log("login failed");
         notifications.show({

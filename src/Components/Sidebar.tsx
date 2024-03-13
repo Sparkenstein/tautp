@@ -11,6 +11,7 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconMoonStars, IconSun } from "@tabler/icons-react";
+import { ImportModal } from "./Modals/ImportModal";
 
 type Props = {
   drawerOpened: boolean;
@@ -19,6 +20,9 @@ type Props = {
 
 export const Sidebar = ({ closeDrawer, drawerOpened }: Props) => {
   const { toggleColorScheme } = useMantineColorScheme();
+
+  const [importOpen, { close: closeImport, open: openImport }] =
+    useDisclosure();
 
   const theme = useMantineTheme();
 
@@ -57,6 +61,9 @@ export const Sidebar = ({ closeDrawer, drawerOpened }: Props) => {
           label="Theme"
         />
         <Divider />
+        <Group>
+          <Button onClick={openImport}>Import</Button>
+        </Group>
       </Stack>
       {/* planned settings:
       1. Export/Import
@@ -67,6 +74,8 @@ export const Sidebar = ({ closeDrawer, drawerOpened }: Props) => {
       6. Auto lock
     
     */}
+
+      <ImportModal isOpen={importOpen} onClose={closeImport} />
     </Drawer>
   );
 };

@@ -24,6 +24,10 @@ export function MainModal({ onClose, opened }: QrModalProps) {
       directory: false,
       multiple: false,
     })) as string;
+    if (!path) {
+      onClose();
+      return;
+    }
     const data = await invoke<string>("read_qr", { path });
     const parsed = parseOTPAuthURL(data);
     if (!parsed.secret || !parsed.label) {

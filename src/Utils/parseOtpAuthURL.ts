@@ -1,8 +1,9 @@
 import type { OtpObject } from "../Pages/Home";
+import { parseURL } from "whatwg-url";
 
 export function parseOTPAuthURL(url: string): OtpObject {
-  const urlObject = new URL(url);
-  const params = new URLSearchParams(urlObject.search);
+  const whatwgURL = parseURL(url);
+  const params = new URLSearchParams(whatwgURL?.query || "");
 
   const algomap: Record<string, string> = {
     SHA1: "SHA-1",
@@ -13,8 +14,8 @@ export function parseOTPAuthURL(url: string): OtpObject {
   let algorithm = params.get("algorithm") || "SHA1";
 
   let otpObject = {
-    type: urlObject.pathname.split("/")[2],
-    label: urlObject.pathname.split("/")[3],
+    type: "totp",
+    label: decodeURIComponent(whatwgURL?.path[0] || ""),
     issuer: params.get("issuer") || "",
     secret: params.get("secret") || "",
     algorithm: algomap[algorithm],
@@ -28,5 +29,11 @@ export function parseOTPAuthURL(url: string): OtpObject {
     throw new Error("Invalid OTPAuth URL");
   }
 
-  return otpObject;
+  if (otpObject.label.includes(":")) {
+    const [issuer, label] = otpObject.label.split(":");
+    otpObject.issuer = issuer;
+    otpObject.label = label;
+  }
+
+  return otpObject as OtpObject;
 }

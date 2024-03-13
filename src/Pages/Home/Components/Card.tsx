@@ -16,7 +16,7 @@ export function Card({ e }: CardProps) {
       <Title>{e.otp}</Title>
       {e.issuer ? (
         <Text>
-          {e.issuer} ({e.label})
+          {decodeURIComponent(e.issuer)} ({decodeURIComponent(e.label || "")})
         </Text>
       ) : (
         <Text>{decodeURIComponent(e.label || "")} </Text>

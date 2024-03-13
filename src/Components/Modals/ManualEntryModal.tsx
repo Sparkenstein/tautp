@@ -1,11 +1,12 @@
 import { memo, useContext, useState } from "react";
 import type { OtpObject } from "../../Pages/Home";
-import { Button, Modal, Stack, TextInput } from "@mantine/core";
+import { Button, Divider, Modal, Stack, TextInput } from "@mantine/core";
 import { useInputState } from "@mantine/hooks";
 import { deleteEntity, recordEntities } from "../../Utils/recordEntity";
 import { AppContext } from "../../Contexts/AppContext";
 import { TOTP } from "totp-generator";
 import { confirm } from "@tauri-apps/api/dialog";
+import { parseOTPAuthURL } from "../../Utils/parseOtpAuthURL";
 
 type ManualModalProps = {
   opened: boolean;
@@ -26,7 +27,7 @@ export function ManualModalBase({ opened, onClose, entity }: ManualModalProps) {
 
   const isEditing = !!entity;
 
-  // const [uri, setUri] = useState("");
+  const [uri, setUri] = useState("");
 
   const saveManual = async () => {
     if (isEditing) {
@@ -78,7 +79,7 @@ export function ManualModalBase({ opened, onClose, entity }: ManualModalProps) {
   return (
     <Modal onClose={onClose} opened={opened} title="Add Manually">
       <Stack p="xl">
-        {/* <TextInput
+        <TextInput
           label="URI"
           required
           placeholder={"otpauth://totp/label?secret=secret"}
@@ -87,10 +88,11 @@ export function ManualModalBase({ opened, onClose, entity }: ManualModalProps) {
             setUri(e.currentTarget.value);
             const parsed = parseOTPAuthURL(e.currentTarget.value);
             setLabel(parsed.label);
-            setSecret(parsed.secret || "");
+            setSecret(parsed.secret);
+            setIssuer(parsed.issuer);
           }}
         />
-        <Divider label="or" /> */}
+        <Divider label="or" />
         <TextInput
           label="Label"
           required

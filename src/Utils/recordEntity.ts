@@ -35,14 +35,24 @@ async function recordEntities(
 async function deleteEntity(entity: OtpObject) {
   const stored = (await store.get<OtpObject[]>("entries")) || [];
   const filtered = stored.filter((e: any) => e.id !== entity.id);
-  await store.set("entries", filtered);
+  const secrets = await invoke<Record<string, string>>("get_secrets", {
+    entries: filtered.map((s) => s.label),
+  });
+  const ents = filtered.map((s, i) => {
+    return {
+      ...s,
+      id: i,
+      secret: secrets[s.label],
+    };
+  });
+  await store.set("entries", ents);
   await store.save();
 
   await invoke("remove_secret", {
     label: entity.label,
   });
 
-  return filtered;
+  return ents;
 }
 
 export { recordEntities, deleteEntity };

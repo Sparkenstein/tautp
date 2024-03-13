@@ -100,7 +100,6 @@ export default function Home() {
 
 // TODO: icons support
 // TODO: view mode: compact, tiles, cards etc.
-// TODO: cleanup code
 // TODO: add settings
 // TODO: advance config for OTP
 // TODO: tap to reveal

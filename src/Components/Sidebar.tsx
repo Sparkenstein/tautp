@@ -19,9 +19,6 @@ type Props = {
 
 export const Sidebar = ({ closeDrawer, drawerOpened }: Props) => {
   const { toggleColorScheme } = useMantineColorScheme();
-  const [backupOpen, { close: closeBackup, open: openBackup }] =
-    useDisclosure();
-  // const [restoreOpen, {close: closeBackup, open: openBackup}] = useDisclosure();
 
   const theme = useMantineTheme();
 
@@ -60,9 +57,6 @@ export const Sidebar = ({ closeDrawer, drawerOpened }: Props) => {
           label="Theme"
         />
         <Divider />
-        <Group>
-          <Button onClick={openBackup}>Backup</Button>
-        </Group>
       </Stack>
       {/* planned settings:
       1. Export/Import

@@ -5,7 +5,7 @@ import { invoke } from "@tauri-apps/api";
 import { open } from "@tauri-apps/api/dialog";
 import { parseOTPAuthURL } from "../../Utils/parseOtpAuthURL";
 import { TOTP } from "totp-generator";
-import { useContext } from "react";
+import { memo, useContext } from "react";
 import { AppContext } from "../../Contexts/AppContext";
 import { recordEntities } from "../../Utils/recordEntity";
 
@@ -14,7 +14,7 @@ type QrModalProps = {
   opened: boolean;
 };
 
-export function MainModal({ onClose, opened }: QrModalProps) {
+export function MainModalBase({ onClose, opened }: QrModalProps) {
   const { entries, setEntries } = useContext(AppContext);
   const [manualModalOpened, { close: closeManual, open: openManual }] =
     useDisclosure();
@@ -64,3 +64,7 @@ export function MainModal({ onClose, opened }: QrModalProps) {
     </div>
   );
 }
+
+export const MainModal = memo(MainModalBase, (prev, next) => {
+  return prev.opened === next.opened;
+});

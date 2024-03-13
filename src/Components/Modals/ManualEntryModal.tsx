@@ -79,20 +79,25 @@ export function ManualModalBase({ opened, onClose, entity }: ManualModalProps) {
   return (
     <Modal onClose={onClose} opened={opened} title="Add Manually">
       <Stack p="xl">
-        <TextInput
-          label="URI"
-          required
-          placeholder={"otpauth://totp/label?secret=secret"}
-          value={uri}
-          onChange={(e) => {
-            setUri(e.currentTarget.value);
-            const parsed = parseOTPAuthURL(e.currentTarget.value);
-            setLabel(parsed.label);
-            setSecret(parsed.secret);
-            setIssuer(parsed.issuer);
-          }}
-        />
-        <Divider label="or" />
+        {!isEditing && (
+          <>
+            {" "}
+            <TextInput
+              label="URI"
+              required
+              placeholder={"otpauth://totp/label?secret=secret"}
+              value={uri}
+              onChange={(e) => {
+                setUri(e.currentTarget.value);
+                const parsed = parseOTPAuthURL(e.currentTarget.value);
+                setLabel(parsed.label);
+                setSecret(parsed.secret);
+                setIssuer(parsed.issuer);
+              }}
+            />
+            <Divider label="or" />
+          </>
+        )}
         <TextInput
           label="Label"
           required

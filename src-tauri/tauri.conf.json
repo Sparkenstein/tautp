@@ -14,6 +14,11 @@
       "all": false,
       "dialog": {
         "all": true
+      },
+      "clipboard": {
+        "all": false,
+        "readText": false,
+        "writeText": true
       }
     },
     "windows": [

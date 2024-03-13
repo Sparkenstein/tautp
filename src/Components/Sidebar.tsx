@@ -1,19 +1,16 @@
 import {
-  Accordion,
   Button,
+  Divider,
   Drawer,
+  Group,
   Stack,
   Switch,
   rem,
   useMantineColorScheme,
   useMantineTheme,
 } from "@mantine/core";
-import {
-  IconMoonStars,
-  IconSun,
-  IconDeviceLaptop,
-  IconBrush,
-} from "@tabler/icons-react";
+import { useDisclosure } from "@mantine/hooks";
+import { IconMoonStars, IconSun } from "@tabler/icons-react";
 
 type Props = {
   drawerOpened: boolean;
@@ -22,6 +19,9 @@ type Props = {
 
 export const Sidebar = ({ closeDrawer, drawerOpened }: Props) => {
   const { toggleColorScheme } = useMantineColorScheme();
+  const [backupOpen, { close: closeBackup, open: openBackup }] =
+    useDisclosure();
+  // const [restoreOpen, {close: closeBackup, open: openBackup}] = useDisclosure();
 
   const theme = useMantineTheme();
 
@@ -50,28 +50,20 @@ export const Sidebar = ({ closeDrawer, drawerOpened }: Props) => {
       onClose={closeDrawer}
       title="Settings"
     >
-      {/* <Stack>
-        
-        <Button>Backup data</Button>
-      </Stack> */}
-
-      <Accordion>
-        <Accordion.Item key={"UI"} value={"UI"}>
-          <Accordion.Control icon={<IconDeviceLaptop />}>
-            {"Appearance"}
-          </Accordion.Control>
-          <Accordion.Panel>
-            <Switch
-              size="md"
-              color="dark.4"
-              onLabel={moonIcon}
-              offLabel={sunIcon}
-              onChange={toggleColorScheme}
-              label="Theme"
-            />
-          </Accordion.Panel>
-        </Accordion.Item>
-      </Accordion>
+      <Stack>
+        <Switch
+          size="md"
+          color="dark.4"
+          onLabel={moonIcon}
+          offLabel={sunIcon}
+          onChange={toggleColorScheme}
+          label="Theme"
+        />
+        <Divider />
+        <Group>
+          <Button onClick={openBackup}>Backup</Button>
+        </Group>
+      </Stack>
       {/* planned settings:
       1. Export/Import
       2. Change master password

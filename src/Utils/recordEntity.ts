@@ -2,13 +2,19 @@ import { invoke } from "@tauri-apps/api";
 import { store } from "./db";
 import { OtpObject } from "../Pages/Home";
 
-async function recordEntity(
-  entity: OtpObject[],
+async function recordEntities(
+  entities: OtpObject[],
   label: string,
   secret: string,
   isEditing?: boolean
 ) {
-  await store.set("entries", entity);
+  const deepCopy: OtpObject[] = JSON.parse(JSON.stringify(entities));
+  const cleaned = deepCopy.map((e) => {
+    delete e.otp;
+    delete e.secret;
+    return e;
+  });
+  await store.set("entries", cleaned);
   await store.save();
 
   if (isEditing) {
@@ -39,4 +45,4 @@ async function deleteEntity(entity: OtpObject) {
   return filtered;
 }
 
-export { recordEntity, deleteEntity };
+export { recordEntities, deleteEntity };

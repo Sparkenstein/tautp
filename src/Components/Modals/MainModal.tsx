@@ -7,7 +7,7 @@ import { parseOTPAuthURL } from "../../Utils/parseOtpAuthURL";
 import { TOTP } from "totp-generator";
 import { useContext } from "react";
 import { AppContext } from "../../Contexts/AppContext";
-import { recordEntity } from "../../Utils/recordEntity";
+import { recordEntities } from "../../Utils/recordEntity";
 
 type QrModalProps = {
   onClose: () => void;
@@ -26,9 +26,13 @@ export function MainModal({ onClose, opened }: QrModalProps) {
     })) as string;
     const data = await invoke<string>("read_qr", { path });
     const parsed = parseOTPAuthURL(data);
+    if (!parsed.secret || !parsed.label) {
+      console.error("Invalid QR code");
+      return;
+    }
     parsed["otp"] = TOTP.generate(parsed.secret).otp;
     parsed["id"] = entries.length;
-    await recordEntity([...entries, parsed], parsed.label, parsed.secret);
+    await recordEntities([...entries, parsed], parsed.label, parsed.secret);
     setEntries([...entries, parsed]);
     onClose();
   };

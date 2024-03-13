@@ -15,7 +15,7 @@ export type OtpObject = {
   id: number;
   label: string;
   issuer: string;
-  secret: string;
+  secret?: string;
   algorithm: string;
   digits: string;
   counter: string;
@@ -54,6 +54,7 @@ export default function Home() {
 
   const memoisedEntries = useMemo(() => {
     return entries.map((e) => {
+      if (!e.secret) return e;
       return {
         ...e,
         otp: TOTP.generate(e.secret).otp,
@@ -104,3 +105,4 @@ export default function Home() {
 // TODO: advance config for OTP
 // TODO: tap to reveal
 // TODO: support `note`
+// TODO: lock user after 3 failed attempts

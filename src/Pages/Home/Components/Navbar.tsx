@@ -1,5 +1,5 @@
-import { ActionIcon, Button, Group, TextInput } from "@mantine/core";
-import { IconSettings } from "@tabler/icons-react";
+import { ActionIcon, Button, Group, TextInput, Tooltip } from "@mantine/core";
+import { IconRefresh, IconSettings } from "@tabler/icons-react";
 import { Sidebar } from "../../../Components/Sidebar";
 import { useDisclosure } from "@mantine/hooks";
 
@@ -26,6 +26,17 @@ export function Navbar({ openMainModal, search, setSearch }: NavbarProps) {
       <Button rightSection={"+"} onClick={openMainModal} variant="light">
         Add New{" "}
       </Button>
+      <Tooltip label="Refresh page">
+        <ActionIcon
+          size={"lg"}
+          onClick={() => {
+            window.location.reload();
+          }}
+          variant="light"
+        >
+          <IconRefresh />
+        </ActionIcon>
+      </Tooltip>
 
       <Sidebar closeDrawer={close} drawerOpened={drawerOpened} />
     </Group>

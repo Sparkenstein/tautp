@@ -2,7 +2,7 @@ import { memo, useContext, useState } from "react";
 import type { OtpObject } from "../../Pages/Home";
 import { Button, Modal, Stack, TextInput } from "@mantine/core";
 import { useInputState } from "@mantine/hooks";
-import { deleteEntity, recordEntity } from "../../Utils/recordEntity";
+import { deleteEntity, recordEntities } from "../../Utils/recordEntity";
 import { AppContext } from "../../Contexts/AppContext";
 import { TOTP } from "totp-generator";
 import { confirm } from "@tauri-apps/api/dialog";
@@ -41,7 +41,7 @@ export function ManualModalBase({ opened, onClose, entity }: ManualModalProps) {
         }
         return e;
       });
-      await recordEntity(changed, label, secret, true);
+      await recordEntities(changed, label, secret, true);
       setEntries(changed);
       onClose();
       return;
@@ -53,13 +53,14 @@ export function ManualModalBase({ opened, onClose, entity }: ManualModalProps) {
       algorithm,
       digits,
       period,
-      id: entries.length,
+      id: entries.length + 1,
       secret,
       counter: "0",
       otp: TOTP.generate(secret).otp,
     };
-    await recordEntity([...entries, newEntry], label, secret);
-    setEntries([...entries, newEntry]);
+    const newEntries = [...entries, { ...newEntry }];
+    await recordEntities([...newEntries], label, secret);
+    setEntries(newEntries);
     onClose();
   };
 
@@ -127,5 +128,5 @@ export function ManualModalBase({ opened, onClose, entity }: ManualModalProps) {
 }
 
 export const ManualModal = memo(ManualModalBase, (prev, next) => {
-  return prev.opened === next.opened;
+  return prev.opened === next.opened && prev.entity === next.entity;
 });

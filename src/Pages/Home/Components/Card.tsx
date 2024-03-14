@@ -1,4 +1,13 @@
-import { ActionIcon, CopyButton, Paper, Text, Title } from "@mantine/core";
+import {
+  ActionIcon,
+  Avatar,
+  Box,
+  CopyButton,
+  Group,
+  Paper,
+  Text,
+  Title,
+} from "@mantine/core";
 import classes from "../Home.module.css";
 import { IconCheck, IconCopy, IconEdit } from "@tabler/icons-react";
 import { OtpObject } from "..";
@@ -15,14 +24,22 @@ export function Card({ e }: CardProps) {
   return (
     <Paper shadow="xs" radius="md" p="xl" className={classes.card}>
       {/* show otp in group of 2's */}
-      <Title>{e.otp?.replace(/(\d)(?=(\d{2})+(?!\d))/g, "$1 ")}</Title>
-      {e.issuer ? (
-        <Text>
-          {decodeURIComponent(e.issuer)} ({decodeURIComponent(e.label || "")})
-        </Text>
-      ) : (
-        <Text>{decodeURIComponent(e.label || "")} </Text>
-      )}
+      <Group gap="lg">
+        <Avatar radius="md" size={"xl"} color={e.icon}>
+          {e.label[0].toUpperCase()}
+        </Avatar>
+        <Box flex={1}>
+          <Title>{e.otp?.replace(/(\d)(?=(\d{2})+(?!\d))/g, "$1 ")}</Title>
+          {e.issuer ? (
+            <Text>
+              {decodeURIComponent(e.issuer)} (
+              {decodeURIComponent(e.label || "")})
+            </Text>
+          ) : (
+            <Text>{decodeURIComponent(e.label || "")} </Text>
+          )}
+        </Box>
+      </Group>
       <ActionIcon variant="light" className={classes.editIcon} onClick={open}>
         <IconEdit />
       </ActionIcon>

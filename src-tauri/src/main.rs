@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::collections::HashMap;
+use std::{collections::HashMap, env};
 
 use keyring::Entry;
 use tauri::Manager;
@@ -19,10 +19,15 @@ fn main() {
             remove_secret
         ])
         .setup(|app| {
-            // check if debug mode is enabled, open devtools if it is
-            if cfg!(debug_assertions) {
+            let process_arg: Vec<String> = env::args().collect();
+            if process_arg.contains(&"--debug".to_string()) {
+                // in prod build, if --debug is passed, open devtools
                 app.get_window("main").unwrap().open_devtools();
             }
+
+            // check if debug mode is enabled, open devtools if it is
+            #[cfg(debug_assertions)]
+            app.get_window("main").unwrap().open_devtools();
 
             Ok(())
         })

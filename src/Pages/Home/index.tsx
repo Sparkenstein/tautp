@@ -3,8 +3,8 @@ import { Navbar } from "./Components/Navbar";
 import { useTimer } from "../../Utils/useTimer";
 import { ProgressBar } from "./Components/Progress";
 import { MainModal } from "../../Components/Modals/MainModal";
-import { useDisclosure, useIdle } from "@mantine/hooks";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useDisclosure, useIdle, useInterval } from "@mantine/hooks";
+import { useContext, useEffect, useMemo } from "react";
 import { store } from "../../Utils/db";
 import { invoke } from "@tauri-apps/api";
 import { Card } from "./Components/Card";
@@ -21,6 +21,7 @@ export type OtpObject = {
   digits: string;
   counter: string;
   period: string;
+  icon?: string;
   otp?: string;
 };
 

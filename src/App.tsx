@@ -78,9 +78,7 @@ function App() {
                 value={password}
                 onChange={(e) => setPassword(e.currentTarget.value)}
               />
-              <Button type="submit" onClick={() => validate()}>
-                {user ? "Login" : "Create"}
-              </Button>
+              <Button type="submit">{user ? "Login" : "Create"}</Button>
             </Stack>
           </form>
         </Stack>

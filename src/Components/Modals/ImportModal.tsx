@@ -1,4 +1,4 @@
-import { Button, Divider, Modal, Radio, Stack, Text } from "@mantine/core";
+import { Button, Divider, Modal, Radio, Stack } from "@mantine/core";
 import { memo, useState } from "react";
 
 type ImportModalProps = {

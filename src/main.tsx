@@ -24,21 +24,27 @@ const browserRouter = createBrowserRouter([
 ]);
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <React.StrictMode>
-    <MantineProvider defaultColorScheme={"dark"}>
-      <Notifications
-        styles={{
-          root: {
-            top: 20,
-            right: 20,
-            zIndex: 1000,
-            position: "fixed",
-          },
-        }}
-      />
-      <AppContextProvider>
-        <RouterProvider router={browserRouter} />
-      </AppContextProvider>
-    </MantineProvider>
-  </React.StrictMode>
+  <Main />
 );
+
+function Main() {
+  return (
+    <React.StrictMode>
+      <MantineProvider defaultColorScheme={"dark"}>
+        <Notifications
+          styles={{
+            root: {
+              top: 20,
+              right: 20,
+              zIndex: 1000,
+              position: "fixed",
+            },
+          }}
+        />
+        <AppContextProvider>
+          <RouterProvider router={browserRouter} />
+        </AppContextProvider>
+      </MantineProvider>
+    </React.StrictMode>
+  );
+}

@@ -1,6 +1,14 @@
-import { memo, useContext, useState } from "react";
+import { memo, useContext, useEffect, useState } from "react";
 import type { OtpObject } from "../../Pages/Home";
-import { Button, Divider, Modal, Stack, TextInput } from "@mantine/core";
+import {
+  Avatar,
+  Button,
+  Divider,
+  Group,
+  Modal,
+  Stack,
+  TextInput,
+} from "@mantine/core";
 import { useInputState } from "@mantine/hooks";
 import { deleteEntity, recordEntities } from "../../Utils/recordEntity";
 import { AppContext } from "../../Contexts/AppContext";
@@ -28,6 +36,28 @@ export function ManualModalBase({ opened, onClose, entity }: ManualModalProps) {
   const isEditing = !!entity;
 
   const [uri, setUri] = useState("");
+  const [color, setColor] = useState("blue");
+
+  const colors = [
+    "dark",
+    "gray",
+    "red",
+    "pink",
+    "grape",
+    "violet",
+    "indigo",
+    "blue",
+    "cyan",
+    "green",
+    "lime",
+    "yellow",
+    "orange",
+    "teal",
+  ];
+
+  useEffect(() => {
+    setColor(colors[Math.floor(Math.random() * colors.length)]);
+  }, [label]);
 
   const saveManual = async () => {
     if (isEditing) {
@@ -57,6 +87,7 @@ export function ManualModalBase({ opened, onClose, entity }: ManualModalProps) {
       id: entries.length + 1,
       secret,
       counter: "0",
+      icon: color,
       otp: TOTP.generate(secret).otp,
     };
     const newEntries = [...entries, { ...newEntry }];
@@ -78,6 +109,11 @@ export function ManualModalBase({ opened, onClose, entity }: ManualModalProps) {
 
   return (
     <Modal onClose={onClose} opened={opened} title="Add Manually">
+      <Group justify="center">
+        <Avatar size={"lg"} color={color} radius={"md"}>
+          {label[0]?.toUpperCase()}
+        </Avatar>
+      </Group>
       <Stack p="xl">
         {!isEditing && (
           <>
@@ -98,6 +134,7 @@ export function ManualModalBase({ opened, onClose, entity }: ManualModalProps) {
             <Divider label="or" />
           </>
         )}
+
         <TextInput
           label="Label"
           required

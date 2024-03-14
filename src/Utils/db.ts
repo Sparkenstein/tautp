@@ -1,8 +1,12 @@
 import { Store } from "tauri-plugin-store-api";
 
-export const store = new Store("settings.json"); //FIXME: rename to dat
+export const store = new Store("totp.dat"); //FIXME: rename to dat
 
-if (!(await store.length())) {
-  await store.set("entries", []);
-  await store.save();
+async function init() {
+  if (!(await store.length())) {
+    await store.set("entries", []);
+    await store.save();
+  }
 }
+
+init();

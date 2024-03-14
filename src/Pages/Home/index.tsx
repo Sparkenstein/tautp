@@ -32,7 +32,7 @@ export default function Home() {
 
   const nav = useNavigate();
 
-  const idle = useIdle(10 * 1000, {
+  const idle = useIdle(60 * 1000, {
     initialState: false,
   });
 

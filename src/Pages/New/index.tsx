@@ -1,32 +1,52 @@
-import { memo, useContext, useEffect, useState } from "react";
-import type { OtpObject } from "../../Pages/Home";
 import {
+  ActionIcon,
   Avatar,
+  Box,
   Button,
   Divider,
   Group,
-  Modal,
   Stack,
   TextInput,
 } from "@mantine/core";
-import { useInputState } from "@mantine/hooks";
-import { deleteEntity, recordEntities } from "../../Utils/recordEntity";
-import { AppContext } from "../../Contexts/AppContext";
-import { TOTP } from "totp-generator";
-import { confirm } from "@tauri-apps/api/dialog";
 import { parseOTPAuthURL } from "../../Utils/parseOtpAuthURL";
+import { useInputState, useMediaQuery } from "@mantine/hooks";
+import { useContext, useState, useEffect } from "react";
+import { TOTP } from "totp-generator";
+import { AppContext } from "../../Contexts/AppContext";
+import { recordEntities, deleteEntity } from "../../Utils/recordEntity";
+import { OtpObject } from "../Home";
+import { useNavigate, useParams } from "react-router-dom";
+import { IconArrowLeft } from "@tabler/icons-react";
 
-type ManualModalProps = {
-  opened: boolean;
-  onClose: () => void;
-  entity?: OtpObject;
-};
+const colorshade = [4, 5, 6, 7, 8, 9];
 
-export function ManualModalBase({ opened, onClose, entity }: ManualModalProps) {
+export const colors = [
+  "gray",
+  "red",
+  "pink",
+  "grape",
+  "violet",
+  "indigo",
+  "blue",
+  "cyan",
+  "green",
+  "lime",
+  "yellow",
+  "orange",
+  "teal",
+].map(
+  (c) => `${c}.${colorshade[Math.floor(Math.random() * colorshade.length)]}`
+);
+
+function EntryDetails() {
   const { entries, setEntries } = useContext(AppContext);
+  const [entity, setEntity] = useState<OtpObject | null>(null);
   const [label, setLabel] = useInputState(entity?.label || "");
   const [secret, setSecret] = useInputState(entity?.secret || "");
   const [issuer, setIssuer] = useInputState(entity?.issuer || "");
+
+  const nav = useNavigate();
+  const params = useParams<{ id: string }>();
 
   // TODO: add support for these
   const algorithm = "SHA-1";
@@ -36,28 +56,23 @@ export function ManualModalBase({ opened, onClose, entity }: ManualModalProps) {
   const isEditing = !!entity;
 
   const [uri, setUri] = useState("");
-  const [color, setColor] = useState("blue");
+  const [color, setColor] = useState(entity?.icon || "blue");
 
-  const colors = [
-    "dark",
-    "gray",
-    "red",
-    "pink",
-    "grape",
-    "violet",
-    "indigo",
-    "blue",
-    "cyan",
-    "green",
-    "lime",
-    "yellow",
-    "orange",
-    "teal",
-  ];
+  const breakpoint = useMediaQuery("(min-width: 768px)");
 
   useEffect(() => {
-    setColor(colors[Math.floor(Math.random() * colors.length)]);
-  }, [label]);
+    if (params.id !== undefined && entries.length > 0) {
+      const e = entries.find((e) => e.id === parseInt(params.id ?? ""));
+      console.log(e);
+      if (e) {
+        setEntity(e);
+        setLabel(e.label);
+        setSecret(e.secret);
+        setIssuer(e.issuer);
+        setColor(e.icon || "blue");
+      }
+    }
+  }, [params.id]);
 
   const saveManual = async () => {
     if (isEditing) {
@@ -74,7 +89,8 @@ export function ManualModalBase({ opened, onClose, entity }: ManualModalProps) {
       });
       await recordEntities(changed, label, secret, true);
       setEntries(changed);
-      onClose();
+      //   onClose();
+      nav("/home", { replace: true });
       return;
     }
 
@@ -93,7 +109,8 @@ export function ManualModalBase({ opened, onClose, entity }: ManualModalProps) {
     const newEntries = [...entries, { ...newEntry }];
     await recordEntities([...newEntries], label, secret);
     setEntries(newEntries);
-    onClose();
+    // onClose();
+    nav("/home", { replace: true });
   };
 
   const deleteEntry = async () => {
@@ -104,17 +121,29 @@ export function ManualModalBase({ opened, onClose, entity }: ManualModalProps) {
       const remaining = await deleteEntity(entity!);
       setEntries(remaining);
     }
-    onClose();
+    nav("/home", { replace: true });
+    // onClose();
   };
 
   return (
-    <Modal onClose={onClose} opened={opened} title="Add Manually">
-      <Group justify="center">
-        <Avatar size={"lg"} color={color} radius={"md"}>
+    <Group justify="center" p="md" align="start">
+      <Box pos={"absolute"} left={20}>
+        <ActionIcon
+          variant="transparent"
+          color="gray"
+          onClick={() => {
+            nav("/home", { replace: true });
+          }}
+        >
+          <IconArrowLeft />
+        </ActionIcon>
+      </Box>
+      <Group p="xl">
+        <Avatar size={breakpoint ? 320 : "xl"} color={color} radius={"md"}>
           {label[0]?.toUpperCase()}
         </Avatar>
       </Group>
-      <Stack p="xl">
+      <Stack p="xl" w={breakpoint ? "40%" : "100%"}>
         {!isEditing && (
           <>
             {" "}
@@ -140,7 +169,10 @@ export function ManualModalBase({ opened, onClose, entity }: ManualModalProps) {
           required
           placeholder="Label"
           value={label}
-          onChange={setLabel}
+          onChange={(e) => {
+            setColor(colors[Math.floor(Math.random() * colors.length)]);
+            setLabel(e);
+          }}
           disabled={isEditing}
         />
 
@@ -167,10 +199,8 @@ export function ManualModalBase({ opened, onClose, entity }: ManualModalProps) {
           </Button>
         )}
       </Stack>
-    </Modal>
+    </Group>
   );
 }
 
-export const ManualModal = memo(ManualModalBase, (prev, next) => {
-  return prev.opened === next.opened && prev.entity === next.entity;
-});
+export default EntryDetails;

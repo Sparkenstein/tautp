@@ -4,6 +4,7 @@ import { Button, Card, PasswordInput, Stack, Text, Title } from "@mantine/core";
 
 import { useNavigate } from "react-router-dom";
 import { notifications } from "@mantine/notifications";
+import { confirm } from "@tauri-apps/api/dialog";
 
 type User = {
   username: string;
@@ -12,6 +13,7 @@ type User = {
 
 function App() {
   const [password, setPassword] = useState("");
+  const [password2, setPassword2] = useState("");
   const [user, setUser] = useState<User | null>(null);
 
   const navigate = useNavigate();
@@ -33,10 +35,28 @@ function App() {
         });
       }
     } else {
+      if (password !== password2) {
+        notifications.show({
+          title: "Create failed",
+          message: "Passwords do not match",
+          color: "red",
+        });
+        return;
+      }
+
+      if (password.length < 8) {
+        const confirmation = await confirm("Password is weak, continue?", {
+          okLabel: "I know what I'm doing",
+          cancelLabel: "Cancel",
+        });
+        if (!confirmation) {
+          return;
+        }
+      }
       // new user
       const res = await invoke("create_user", { password });
       if (res === "success") {
-        navigate("/home");
+        navigate("/home", { replace: true });
       } else {
         console.log("create failed");
         notifications.show({
@@ -78,6 +98,13 @@ function App() {
                 value={password}
                 onChange={(e) => setPassword(e.currentTarget.value)}
               />
+              {!user && (
+                <PasswordInput
+                  placeholder="re-enter password"
+                  value={password2}
+                  onChange={(e) => setPassword2(e.currentTarget.value)}
+                />
+              )}
               <Button type="submit">{user ? "Login" : "Create"}</Button>
             </Stack>
           </form>

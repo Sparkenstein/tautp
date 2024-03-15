@@ -3,7 +3,7 @@ import { Navbar } from "./Components/Navbar";
 import { useTimer } from "../../Utils/useTimer";
 import { ProgressBar } from "./Components/Progress";
 import { MainModal } from "../../Components/Modals/MainModal";
-import { useDisclosure, useIdle, useInterval } from "@mantine/hooks";
+import { useDisclosure, useIdle } from "@mantine/hooks";
 import { useContext, useEffect, useMemo } from "react";
 import { store } from "../../Utils/db";
 import { invoke } from "@tauri-apps/api";
@@ -32,7 +32,7 @@ export default function Home() {
 
   const nav = useNavigate();
 
-  const idle = useIdle(60 * 1000, {
+  const idle = useIdle(50 * 1000, {
     initialState: false,
   });
 

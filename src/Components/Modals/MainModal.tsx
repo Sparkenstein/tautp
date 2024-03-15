@@ -1,6 +1,5 @@
-import { Button, Modal, Stack } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
-import { ManualModal } from "./ManualEntryModal";
+import { Button, Drawer, Modal, Stack } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import { invoke } from "@tauri-apps/api";
 import { open } from "@tauri-apps/api/dialog";
 import { parseOTPAuthURL } from "../../Utils/parseOtpAuthURL";
@@ -8,6 +7,8 @@ import { TOTP } from "totp-generator";
 import { memo, useContext } from "react";
 import { AppContext } from "../../Contexts/AppContext";
 import { recordEntities } from "../../Utils/recordEntity";
+import { useNavigate } from "react-router-dom";
+import { colors } from "../../Pages/New";
 
 type QrModalProps = {
   onClose: () => void;
@@ -16,8 +17,9 @@ type QrModalProps = {
 
 export function MainModalBase({ onClose, opened }: QrModalProps) {
   const { entries, setEntries } = useContext(AppContext);
-  const [manualModalOpened, { close: closeManual, open: openManual }] =
-    useDisclosure();
+  // const [manualModalOpened, { close: closeManual, open: openManual }] =
+  //   useDisclosure();
+  const nav = useNavigate();
 
   const readQr = async () => {
     const path = (await open({
@@ -36,32 +38,72 @@ export function MainModalBase({ onClose, opened }: QrModalProps) {
     }
     parsed["otp"] = TOTP.generate(parsed.secret).otp;
     parsed["id"] = entries.length;
+    parsed["icon"] = colors[entries.length % colors.length];
     await recordEntities([...entries, parsed], parsed.label, parsed.secret);
     setEntries([...entries, parsed]);
     onClose();
   };
 
   return (
-    <div>
-      <Modal onClose={onClose} opened={opened} title="Select method">
-        <Stack p="xl">
-          <Button
-            onClick={() => {
-              openManual();
-              onClose();
-            }}
-            variant="light"
-          >
-            Add Manually
-          </Button>
-          <Button onClick={readQr} variant="light">
-            Read QR Code
-          </Button>
-        </Stack>
-      </Modal>
+    <Opener onClose={onClose} opened={opened}>
+      <Stack p="xl">
+        <Button
+          onClick={() => {
+            onClose();
+            nav("/new", { replace: true });
+            // openManual();
+          }}
+          variant="light"
+        >
+          Add Manually
+        </Button>
+        <Button onClick={readQr} variant="light">
+          Read QR Code
+        </Button>
+      </Stack>
+    </Opener>
+  );
+}
 
-      <ManualModal opened={manualModalOpened} onClose={closeManual} />
-    </div>
+function Opener({
+  children,
+  onClose,
+  opened,
+}: {
+  children: React.ReactNode;
+  onClose: () => void;
+  opened: boolean;
+}) {
+  const isDesktop = useMediaQuery("(min-width: 768px)");
+
+  if (!isDesktop) {
+    return (
+      <Drawer
+        onClose={onClose}
+        opened={opened}
+        title="Select method"
+        position="bottom"
+        size={240}
+        transitionProps={{
+          transition: "slide-up",
+        }}
+      >
+        {children}
+      </Drawer>
+    );
+  }
+
+  return (
+    <Modal
+      onClose={onClose}
+      opened={opened}
+      title="Select method"
+      transitionProps={{
+        transition: "slide-down",
+      }}
+    >
+      {children}
+    </Modal>
   );
 }
 

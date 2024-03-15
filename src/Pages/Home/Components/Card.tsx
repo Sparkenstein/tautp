@@ -11,16 +11,16 @@ import {
 import classes from "../Home.module.css";
 import { IconCheck, IconCopy, IconEdit } from "@tabler/icons-react";
 import { OtpObject } from "..";
-import { useDisclosure } from "@mantine/hooks";
-import { ManualModal } from "../../../Components/Modals/ManualEntryModal";
 import { clipboard } from "@tauri-apps/api";
+import { useNavigate } from "react-router-dom";
 
 type CardProps = {
   e: OtpObject;
 };
 
 export function Card({ e }: CardProps) {
-  const [opened, { close, open }] = useDisclosure();
+  const nav = useNavigate();
+  // const [opened, { close, open }] = useDisclosure();
   return (
     <Paper shadow="xs" radius="md" p="xl" className={classes.card}>
       {/* show otp in group of 2's */}
@@ -40,7 +40,11 @@ export function Card({ e }: CardProps) {
           )}
         </Box>
       </Group>
-      <ActionIcon variant="light" className={classes.editIcon} onClick={open}>
+      <ActionIcon
+        variant="light"
+        className={classes.editIcon}
+        onClick={() => nav(`/edit/${e.id}`, { replace: true })}
+      >
         <IconEdit />
       </ActionIcon>
 
@@ -59,8 +63,6 @@ export function Card({ e }: CardProps) {
           </ActionIcon>
         )}
       </CopyButton>
-
-      <ManualModal opened={opened} onClose={close} entity={e} />
     </Paper>
   );
 }

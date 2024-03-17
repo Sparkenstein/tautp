@@ -11,23 +11,22 @@ import { Card } from "./Components/Card";
 import { TOTP } from "totp-generator";
 import { AppContext } from "../../Contexts/AppContext";
 import { useNavigate } from "react-router-dom";
+import { getRandomId } from "../../Utils/randomId";
 
 export type OtpObject = {
-  id: number;
+  id: string;
   label: string;
   issuer: string;
   secret?: string;
   algorithm: string;
-  digits: string;
-  counter: string;
-  period: string;
+  digits: number;
+  counter: number;
+  period: number;
   icon?: string;
   otp?: string;
 };
 
 export default function Home() {
-  // const [entries, setEntries] = useState<OtpObject[]>([]);
-
   const { entries, setEntries } = useContext(AppContext);
 
   const nav = useNavigate();
@@ -52,15 +51,16 @@ export default function Home() {
       const stored = await store.get<OtpObject[]>("entries");
       if (stored) {
         const secrets = await invoke<Record<string, string>>("get_secrets", {
-          entries: stored.map((s) => s.label),
+          entries: stored.map((s) => s.id),
         });
-        const ents = stored.map((s, i) => {
+        console.log("secrets", secrets);
+        const ents = stored.map((s) => {
           return {
             ...s,
-            id: i,
-            secret: secrets[s.label],
+            secret: secrets[s.id],
           };
         });
+        console.log(ents);
         setEntries(ents);
       }
     }
@@ -91,7 +91,7 @@ export default function Home() {
 
       <ProgressBar time={time} />
 
-      <Grid p="md">
+      <Grid p="md" align="stretch" justify="start">
         {memoisedEntries.map((e) => (
           <Grid.Col
             key={e.id}

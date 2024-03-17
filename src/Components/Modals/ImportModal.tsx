@@ -1,12 +1,20 @@
 import { Button, Divider, Modal, Radio, Stack } from "@mantine/core";
+import { open } from "@tauri-apps/api/dialog";
 import { memo, useState } from "react";
+import { AegisImporter } from "../../Utils/importers";
 
 type ImportModalProps = {
   isOpen: boolean;
   onClose: () => void;
 };
 
-const importOptions = [
+type ImportOptions =
+  | "Aegis"
+  | "Authy"
+  | "Google Authenticator"
+  | "Microsoft Authenticator";
+
+const importOptions: ImportOptions[] = [
   "Aegis",
   "Authy",
   "Google Authenticator",
@@ -14,26 +22,46 @@ const importOptions = [
 ];
 
 function ImportModalBase({ isOpen, onClose }: ImportModalProps) {
-  const [from, setFrom] = useState(importOptions[0]);
+  const [from, setFrom] = useState<ImportOptions>("Aegis");
+  const [path, setPath] = useState<string>("");
 
   const importData = () => {
-    console.log(`Importing data from ${from}`);
+    switch (from) {
+      case "Aegis":
+        AegisImporter(path);
+        break;
+    }
     onClose();
   };
 
+  const selectFile = async () => {
+    const path = await open({
+      multiple: false,
+      directory: false,
+    });
+    if (path) {
+      setPath(path as string);
+    }
+  };
+
   return (
-    <Modal opened={isOpen} onClose={onClose} title="Import data from">
-      <Radio.Group value={from} onChange={setFrom}>
+    <Modal
+      opened={isOpen}
+      onClose={onClose}
+      title="Import data from"
+      keepMounted={false}
+    >
+      <Radio.Group value={from} onChange={(e) => setFrom(e as ImportOptions)}>
         <Stack>
           {importOptions.map((option) => (
-            <Radio
-              key={option}
-              value={option.toLowerCase().replace(" ", "-")}
-              label={option}
-            ></Radio>
+            <Radio key={option} value={option} label={option}></Radio>
           ))}
           <Divider />
-          <Button onClick={importData}>Import</Button>
+          <Button onClick={selectFile}>Select import file</Button>
+          <Divider />
+          <Button disabled={!path} onClick={importData}>
+            Import
+          </Button>
         </Stack>
       </Radio.Group>
     </Modal>

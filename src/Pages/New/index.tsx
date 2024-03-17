@@ -13,30 +13,12 @@ import { useInputState, useMediaQuery } from "@mantine/hooks";
 import { useContext, useState, useEffect } from "react";
 import { TOTP } from "totp-generator";
 import { AppContext } from "../../Contexts/AppContext";
-import { recordEntities, deleteEntity } from "../../Utils/recordEntity";
+import { recordEntity, deleteEntity } from "../../Utils/recordEntity";
 import { OtpObject } from "../Home";
 import { useNavigate, useParams } from "react-router-dom";
 import { IconArrowLeft } from "@tabler/icons-react";
-
-const colorshade = [4, 5, 6, 7, 8, 9];
-
-export const colors = [
-  "gray",
-  "red",
-  "pink",
-  "grape",
-  "violet",
-  "indigo",
-  "blue",
-  "cyan",
-  "green",
-  "lime",
-  "yellow",
-  "orange",
-  "teal",
-].map(
-  (c) => `${c}.${colorshade[Math.floor(Math.random() * colorshade.length)]}`
-);
+import { randomColor } from "../../Utils/randomColor";
+import { getRandomId } from "../../Utils/randomId";
 
 function EntryDetails() {
   const { entries, setEntries } = useContext(AppContext);
@@ -50,10 +32,10 @@ function EntryDetails() {
 
   // TODO: add support for these
   const algorithm = "SHA-1";
-  const digits = "6";
-  const period = "30";
+  const digits = 6;
+  const period = 30;
 
-  const isEditing = !!entity;
+  const isEditing = params.id !== undefined;
 
   const [uri, setUri] = useState("");
   const [color, setColor] = useState(entity?.icon || "blue");
@@ -62,10 +44,9 @@ function EntryDetails() {
 
   useEffect(() => {
     if (params.id !== undefined && entries.length > 0) {
-      const e = entries.find((e) => e.id === parseInt(params.id ?? ""));
+      const e = entries.find((e) => e.id === params.id);
       console.log(e);
       if (e) {
-        setEntity(e);
         setLabel(e.label);
         setSecret(e.secret);
         setIssuer(e.issuer);
@@ -73,6 +54,19 @@ function EntryDetails() {
       }
     }
   }, [params.id]);
+
+  useEffect(() => {
+    setEntity({
+      label,
+      secret,
+      issuer,
+      algorithm,
+      digits,
+      period,
+      counter: 0,
+      id: params.id!,
+    });
+  }, [label, secret, issuer]);
 
   const saveManual = async () => {
     if (isEditing) {
@@ -87,7 +81,7 @@ function EntryDetails() {
         }
         return e;
       });
-      await recordEntities(changed, label, secret, true);
+      await recordEntity(entity!);
       setEntries(changed);
       //   onClose();
       nav("/home", { replace: true });
@@ -100,16 +94,15 @@ function EntryDetails() {
       algorithm,
       digits,
       period,
-      id: entries.length + 1,
+      id: getRandomId(),
       secret,
-      counter: "0",
+      counter: 0,
       icon: color,
       otp: TOTP.generate(secret).otp,
     };
     const newEntries = [...entries, { ...newEntry }];
-    await recordEntities([...newEntries], label, secret);
+    await recordEntity(newEntry);
     setEntries(newEntries);
-    // onClose();
     nav("/home", { replace: true });
   };
 
@@ -170,7 +163,7 @@ function EntryDetails() {
           placeholder="Label"
           value={label}
           onChange={(e) => {
-            setColor(colors[Math.floor(Math.random() * colors.length)]);
+            setColor(randomColor());
             setLabel(e);
           }}
           disabled={isEditing}

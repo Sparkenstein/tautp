@@ -1,8 +1,8 @@
 import {
   ActionIcon,
   Avatar,
-  Box,
   CopyButton,
+  Flex,
   Group,
   Paper,
   Text,
@@ -22,23 +22,24 @@ export function Card({ e }: CardProps) {
   const nav = useNavigate();
   // const [opened, { close, open }] = useDisclosure();
   return (
-    <Paper shadow="xs" radius="md" p="xl" className={classes.card}>
+    <Paper shadow="xs" radius="md" p="xl" className={classes.card} h="auto">
       {/* show otp in group of 2's */}
       <Group gap="lg">
         <Avatar radius="md" size={"xl"} color={e.icon}>
           {e.label[0].toUpperCase()}
         </Avatar>
-        <Box flex={1}>
+        <Flex wrap="nowrap" direction={"column"}>
           <Title>{e.otp?.replace(/(\d)(?=(\d{2})+(?!\d))/g, "$1 ")}</Title>
           {e.issuer ? (
             <Text>
-              {decodeURIComponent(e.issuer)} (
-              {decodeURIComponent(e.label || "")})
+              {`${decodeURIComponent(e.issuer)} (${decodeURIComponent(
+                e.label || ""
+              )})`}
             </Text>
           ) : (
             <Text>{decodeURIComponent(e.label || "")} </Text>
           )}
-        </Box>
+        </Flex>
       </Group>
       <ActionIcon
         variant="light"

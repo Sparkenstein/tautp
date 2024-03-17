@@ -13,16 +13,14 @@ export function parseOTPAuthURL(url: string): OtpObject {
 
   let algorithm = params.get("algorithm") || "SHA1";
 
-  let otpObject = {
-    type: "totp",
+  let otpObject: Partial<OtpObject> = {
     label: decodeURIComponent(whatwgURL?.path[0] || ""),
     issuer: params.get("issuer") || "",
     secret: params.get("secret") || "",
     algorithm: algomap[algorithm],
-    digits: params.get("digits") || "6",
-    counter: params.get("counter") || "0",
-    period: params.get("period") || "30",
-    id: 0,
+    digits: parseInt(params.get("digits") || "", 10),
+    period: parseInt(params.get("period") || "", 10),
+    counter: 0,
   };
 
   if (!otpObject.secret || !otpObject.label) {

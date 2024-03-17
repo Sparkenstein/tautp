@@ -1,47 +1,35 @@
 import { invoke } from "@tauri-apps/api";
 import { store } from "./db";
 import { OtpObject } from "../Pages/Home";
+import { getRandomId } from "./randomId";
+import { log } from "./logger";
 
-async function recordEntities(
-  entities: OtpObject[],
-  label: string,
-  secret: string,
-  isEditing?: boolean
-) {
-  const deepCopy: OtpObject[] = JSON.parse(JSON.stringify(entities));
-  const cleaned = deepCopy.map((e) => {
-    delete e.otp;
-    delete e.secret;
-    return e;
-  });
-  await store.set("entries", cleaned);
+async function recordEntity(entity: OtpObject) {
+  const stored = (await store.get<OtpObject[]>("entries")) || [];
+  const copy = JSON.parse(JSON.stringify(entity));
+  delete copy.otp;
+  delete copy.secret;
+
+  const newStored = [...stored, copy];
+  await store.set("entries", newStored);
   await store.save();
-
-  if (isEditing) {
-    await invoke("remove_secret", {
-      label,
-    });
-    console.log("removed secret", label);
-  }
-
+  log(`Recording entity ${entity.id}.${entity.label}`);
   await invoke("add_secret", {
-    label,
-    secret,
+    label: entity.id,
+    secret: entity.secret,
   });
-
-  return;
 }
 
 async function deleteEntity(entity: OtpObject) {
   const stored = (await store.get<OtpObject[]>("entries")) || [];
   const filtered = stored.filter((e: any) => e.id !== entity.id);
   const secrets = await invoke<Record<string, string>>("get_secrets", {
-    entries: filtered.map((s) => s.label),
+    entries: filtered.map((s) => s.id),
   });
-  const ents = filtered.map((s, i) => {
+  const ents = filtered.map<OtpObject>((s) => {
     return {
       ...s,
-      id: i,
+      id: getRandomId(),
       secret: secrets[s.label],
     };
   });
@@ -55,4 +43,4 @@ async function deleteEntity(entity: OtpObject) {
   return ents;
 }
 
-export { recordEntities, deleteEntity };
+export { deleteEntity, recordEntity };

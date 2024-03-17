@@ -6,9 +6,10 @@ import { parseOTPAuthURL } from "../../Utils/parseOtpAuthURL";
 import { TOTP } from "totp-generator";
 import { memo, useContext } from "react";
 import { AppContext } from "../../Contexts/AppContext";
-import { recordEntities } from "../../Utils/recordEntity";
+import { recordEntity } from "../../Utils/recordEntity";
 import { useNavigate } from "react-router-dom";
-import { colors } from "../../Pages/New";
+import { randomColor } from "../../Utils/randomColor";
+import { getRandomId } from "../../Utils/randomId";
 
 type QrModalProps = {
   onClose: () => void;
@@ -37,9 +38,9 @@ export function MainModalBase({ onClose, opened }: QrModalProps) {
       return;
     }
     parsed["otp"] = TOTP.generate(parsed.secret).otp;
-    parsed["id"] = entries.length;
-    parsed["icon"] = colors[entries.length % colors.length];
-    await recordEntities([...entries, parsed], parsed.label, parsed.secret);
+    parsed["id"] = getRandomId();
+    parsed["icon"] = randomColor();
+    await recordEntity(parsed);
     setEntries([...entries, parsed]);
     onClose();
   };

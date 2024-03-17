@@ -19,6 +19,19 @@
         "all": false,
         "readText": false,
         "writeText": true
+      },
+      "fs": {
+        "all": false,
+        "copyFile": false,
+        "createDir": false,
+        "exists": false,
+        "readDir": false,
+        "readFile": true,
+        "removeDir": false,
+        "removeFile": false,
+        "renameFile": false,
+        "scope": [],
+        "writeFile": false
       }
     },
     "windows": [

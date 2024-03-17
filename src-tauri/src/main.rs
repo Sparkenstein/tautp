@@ -1,13 +1,18 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::{collections::HashMap, env};
-
 use keyring::Entry;
+use std::{collections::HashMap, env};
 use tauri::Manager;
+use tauri_plugin_log::LogTarget;
 
 fn main() {
     tauri::Builder::default()
+        .plugin(
+            tauri_plugin_log::Builder::default()
+                .targets([LogTarget::LogDir, LogTarget::Stdout, LogTarget::Webview])
+                .build(),
+        )
         .plugin(tauri_plugin_store::Builder::default().build())
         .invoke_handler(tauri::generate_handler![
             read_qr,

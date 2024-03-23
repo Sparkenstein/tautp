@@ -1,9 +1,8 @@
 import { readTextFile } from "@tauri-apps/api/fs";
-import { OtpObject } from "../../Pages/Home";
+import { OtpObject } from "../../pages/Home";
 import { randomColor } from "../randomColor";
 import { getRandomId } from "../randomId";
-import { store } from "../db";
-import { recordEntities, recordEntity } from "../recordEntity";
+import { recordEntity } from "../recordEntity";
 
 type Info = {
   secret: string;

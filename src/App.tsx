@@ -106,7 +106,9 @@ function App() {
                   onChange={(e) => setPassword2(e.currentTarget.value)}
                 />
               )}
-              <Button type="submit">{user ? "Login" : "Create"}</Button>
+              <Button type="submit" color="brand">
+                {user ? "Login" : "Create"}
+              </Button>
             </Stack>
           </form>
         </Stack>

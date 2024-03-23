@@ -11,11 +11,11 @@ import {
 import { Notifications } from "@mantine/notifications";
 
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
-import EntryDetails from "./Pages/New";
-import { AppContextProvider } from "./Contexts/AppContext";
+import EntryDetails from "./pages/New";
+import { AppContextProvider } from "./contexts/AppContext";
 
 const App = lazy(() => import("./App"));
-const Home = lazy(() => import("./Pages/Home"));
+const Home = lazy(() => import("./pages/Home"));
 // const EntryDetails = lazy(() => import("./Pages/New")); // FIME: This is not working
 
 const browserRouter = createBrowserRouter([
@@ -36,21 +36,29 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 );
 
 const myColor: MantineColorsTuple = [
-  "#e0fbff",
-  "#cbf2ff",
-  "#9ae2ff",
-  "#64d2ff",
-  "#3cc5fe",
-  "#23bcfe",
-  "#09b8ff",
-  "#00a1e4",
-  "#0090cd",
-  "#007cb5",
+  "#f2f0ff",
+  "#e0dff2",
+  "#bfbdde",
+  "#9b98ca",
+  "#7d79ba",
+  "#6a65b0",
+  "#605bac",
+  "#504c97",
+  "#464388",
+  "#3b3979",
 ];
 
 const theme = createTheme({
+  components: {
+    // Button: {
+    //   defaultProps: {
+    //     color: "brand.9",
+    //   },
+    // },
+  },
+  primaryColor: "pink",
   colors: {
-    myColor,
+    brand: myColor,
   },
 });
 

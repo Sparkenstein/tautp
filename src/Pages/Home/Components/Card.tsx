@@ -22,14 +22,25 @@ export function Card({ e }: CardProps) {
   const nav = useNavigate();
   // const [opened, { close, open }] = useDisclosure();
   return (
-    <Paper shadow="xs" radius="md" p="xl" className={classes.card} h="auto">
+    <Paper
+      shadow="xs"
+      radius="md"
+      p="xl"
+      className={classes.card}
+      h="100%"
+      style={{
+        overflow: "hidden",
+      }}
+    >
       {/* show otp in group of 2's */}
-      <Group gap="lg">
+      <Group gap="lg" wrap="nowrap">
         <Avatar radius="md" size={"xl"} color={e.icon}>
           {e.label[0].toUpperCase()}
         </Avatar>
         <Flex wrap="nowrap" direction={"column"}>
-          <Title>{e.otp?.replace(/(\d)(?=(\d{2})+(?!\d))/g, "$1 ")}</Title>
+          <Title textWrap="nowrap">
+            {e.otp?.replace(/(\d)(?=(\d{2})+(?!\d))/g, "$1 ")}
+          </Title>
           {e.issuer ? (
             <Text>
               {`${decodeURIComponent(e.issuer)} (${decodeURIComponent(

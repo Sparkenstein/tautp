@@ -28,7 +28,7 @@ export default function Home() {
 
   const nav = useNavigate();
 
-  const idle = useIdle(50 * 1000, {
+  const idle = useIdle(import.meta.env.DEV ? 5000000 : 50 * 1000, {
     initialState: false,
   });
 
@@ -67,16 +67,15 @@ export default function Home() {
 
       <ProgressBar time={time} />
 
-      <Grid p="md" align="stretch" justify="start">
+      <Grid p="md" align="stretch" justify="start" style={{ height: "100%" }}>
         {memoisedEntries.map((e) => (
           <Grid.Col
             key={e.id}
             span={{
-              xs: 12,
+              base: 12,
               sm: 6,
               md: 4,
               lg: 3,
-              xl: 2,
             }}
           >
             <Card e={e}></Card>

@@ -7,7 +7,6 @@ export function useTimer() {
   });
 
   useEffect(() => {
-    console.log("starting interval");
     const interval = setInterval(() => {
       const currentSeconds = Math.floor(Date.now() / 1000);
       const time = 30 - (currentSeconds % 30);
@@ -15,7 +14,6 @@ export function useTimer() {
     }, 1000);
 
     return () => {
-      console.log("clearing interval");
       clearInterval(interval);
     };
   }, []);

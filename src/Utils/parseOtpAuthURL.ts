@@ -1,4 +1,4 @@
-import type { OtpObject } from "../Pages/Home";
+import type { OtpObject } from "../pages/Home";
 import { parseURL } from "whatwg-url";
 
 export function parseOTPAuthURL(url: string): OtpObject {
@@ -23,8 +23,12 @@ export function parseOTPAuthURL(url: string): OtpObject {
     counter: 0,
   };
 
-  if (!otpObject.secret || !otpObject.label) {
-    throw new Error("Invalid OTPAuth URL");
+  if (!otpObject.secret) {
+    throw new Error("Invalid OTPAuth URL, missing secret");
+  }
+
+  if (!otpObject.label) {
+    throw new Error("Invalid OTPAuth URL, missing label");
   }
 
   if (otpObject.label.includes(":")) {

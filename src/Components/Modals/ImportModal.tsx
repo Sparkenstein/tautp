@@ -1,7 +1,7 @@
 import { Button, Divider, Modal, Radio, Stack } from "@mantine/core";
 import { open } from "@tauri-apps/api/dialog";
 import { memo, useState } from "react";
-import { AegisImporter } from "../../Utils/importers";
+import { AegisImporter } from "../../utils/importers";
 
 type ImportModalProps = {
   isOpen: boolean;

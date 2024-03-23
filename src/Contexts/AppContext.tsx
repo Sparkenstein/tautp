@@ -1,5 +1,6 @@
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import { OtpObject } from "../Pages/Home";
+import { store } from "../utils/db";
 
 type AppContext = {
   entries: OtpObject[];
@@ -17,6 +18,16 @@ export const AppContextProvider = ({
   children: React.ReactNode;
 }) => {
   const [entries, setEntries] = useState<OtpObject[]>([]);
+
+  useEffect(() => {
+    async function init() {
+      const stored = await store.get<OtpObject[]>("entries");
+      if (stored && stored.length > entries.length) {
+        setEntries(stored);
+      }
+    }
+    init();
+  }, [entries]);
 
   return (
     <AppContext.Provider value={{ entries, setEntries }}>

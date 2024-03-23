@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { invoke } from "@tauri-apps/api/tauri";
 import { Button, Card, PasswordInput, Stack, Text, Title } from "@mantine/core";
 
 import { useNavigate } from "react-router-dom";
 import { notifications } from "@mantine/notifications";
 import { confirm } from "@tauri-apps/api/dialog";
+import { store } from "./utils/db";
 
 type User = {
   username: string;
-  hash: string;
+  password: string;
 };
 
 function App() {
@@ -21,8 +21,12 @@ function App() {
   const validate = async () => {
     if (user) {
       // existing user
-      const res = await invoke("validate_user", { password });
-      if (res === "success") {
+      const existing = await store.get<User>("user");
+      if (!existing) {
+        return;
+      }
+
+      if (existing.password === password) {
         navigate("/home", {
           replace: true,
         });
@@ -54,23 +58,20 @@ function App() {
         }
       }
       // new user
-      const res = await invoke("create_user", { password });
-      if (res === "success") {
-        navigate("/home", { replace: true });
-      } else {
-        console.log("create failed");
-        notifications.show({
-          title: "Create failed",
-          message: "Invalid password",
-          color: "red",
-        });
-      }
+      await store.set("user", { username: "user", password });
+      await store.save();
+      navigate("/home", {
+        replace: true,
+      });
     }
   };
 
   useEffect(() => {
-    invoke<User | "">("get_user").then((user) => {
-      if (user) setUser(user);
+    store.get<User>("user").then((data) => {
+      console.log("is user", data);
+      if (data) {
+        setUser(data);
+      }
     });
   }, []);
 

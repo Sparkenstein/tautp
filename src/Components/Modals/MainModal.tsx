@@ -2,14 +2,15 @@ import { Button, Drawer, Modal, Stack } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { invoke } from "@tauri-apps/api";
 import { open } from "@tauri-apps/api/dialog";
-import { parseOTPAuthURL } from "../../Utils/parseOtpAuthURL";
+import { parseOTPAuthURL } from "../../utils/parseOtpAuthURL";
 import { TOTP } from "totp-generator";
 import { memo, useContext } from "react";
-import { AppContext } from "../../Contexts/AppContext";
+import { AppContext } from "../../contexts/AppContext";
 import { recordEntity } from "../../Utils/recordEntity";
 import { useNavigate } from "react-router-dom";
 import { randomColor } from "../../Utils/randomColor";
 import { getRandomId } from "../../Utils/randomId";
+import { notifications } from "@mantine/notifications";
 
 type QrModalProps = {
   onClose: () => void;
@@ -26,23 +27,36 @@ export function MainModalBase({ onClose, opened }: QrModalProps) {
     const path = (await open({
       directory: false,
       multiple: false,
+      filters: [{ extensions: ["png"], name: "Images" }],
     })) as string;
     if (!path) {
       onClose();
       return;
     }
     const data = await invoke<string>("read_qr", { path });
-    const parsed = parseOTPAuthURL(data);
-    if (!parsed.secret || !parsed.label) {
-      console.error("Invalid QR code");
-      return;
-    }
-    parsed["otp"] = TOTP.generate(parsed.secret).otp;
-    parsed["id"] = getRandomId();
-    parsed["icon"] = randomColor();
-    await recordEntity(parsed);
-    setEntries([...entries, parsed]);
+    console.log(data);
     onClose();
+    try {
+      const parsed = parseOTPAuthURL(data);
+      if (!parsed.secret || !parsed.label) {
+        console.error("Invalid QR code");
+        throw new Error("Invalid QR code");
+        return;
+      }
+      parsed["otp"] = TOTP.generate(parsed.secret).otp;
+      parsed["id"] = getRandomId();
+      parsed["icon"] = randomColor();
+      const newEntries = await recordEntity(parsed);
+      setEntries([...newEntries]);
+    } catch (e) {
+      console.error(e);
+
+      notifications.show({
+        title: "Invalid QR code",
+        message: "The QR code you provided is invalid",
+        color: "red",
+      });
+    }
   };
 
   return (

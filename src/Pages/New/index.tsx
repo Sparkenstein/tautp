@@ -8,12 +8,16 @@ import {
   Stack,
   TextInput,
 } from "@mantine/core";
-import { parseOTPAuthURL } from "../../Utils/parseOtpAuthURL";
+import { parseOTPAuthURL } from "../../utils/parseOtpAuthURL";
 import { useInputState, useMediaQuery } from "@mantine/hooks";
 import { useContext, useState, useEffect } from "react";
 import { TOTP } from "totp-generator";
-import { AppContext } from "../../Contexts/AppContext";
-import { recordEntity, deleteEntity } from "../../Utils/recordEntity";
+import { AppContext } from "../../contexts/AppContext";
+import {
+  recordEntity,
+  deleteEntity,
+  renameEntity,
+} from "../../Utils/recordEntity";
 import { OtpObject } from "../Home";
 import { useNavigate, useParams } from "react-router-dom";
 import { IconArrowLeft } from "@tabler/icons-react";
@@ -43,19 +47,6 @@ function EntryDetails() {
   const breakpoint = useMediaQuery("(min-width: 768px)");
 
   useEffect(() => {
-    if (params.id !== undefined && entries.length > 0) {
-      const e = entries.find((e) => e.id === params.id);
-      console.log(e);
-      if (e) {
-        setLabel(e.label);
-        setSecret(e.secret);
-        setIssuer(e.issuer);
-        setColor(e.icon || "blue");
-      }
-    }
-  }, [params.id]);
-
-  useEffect(() => {
     setEntity({
       label,
       secret,
@@ -68,21 +59,24 @@ function EntryDetails() {
     });
   }, [label, secret, issuer]);
 
+  useEffect(() => {
+    console.log("params", entries);
+    if (params.id !== undefined && entries.length > 0) {
+      const e = entries.find((e) => e.id === params.id);
+      if (e) {
+        setLabel(e.label);
+        setSecret(e.secret);
+        setIssuer(e.issuer);
+        setColor(e.icon || "blue");
+      }
+    }
+  }, [params.id, entries]);
+
   const saveManual = async () => {
     if (isEditing) {
-      const changed = entries.map((e) => {
-        if (e.id === entity?.id) {
-          return {
-            ...e,
-            label,
-            issuer,
-            secret,
-          };
-        }
-        return e;
-      });
-      await recordEntity(entity!);
-      setEntries(changed);
+      const changed = { ...entity!, label, secret, issuer, icon: color };
+      const newEntries = await renameEntity(changed);
+      setEntries(newEntries);
       //   onClose();
       nav("/home", { replace: true });
       return;
@@ -100,8 +94,8 @@ function EntryDetails() {
       icon: color,
       otp: TOTP.generate(secret).otp,
     };
-    const newEntries = [...entries, { ...newEntry }];
-    await recordEntity(newEntry);
+
+    const newEntries = await recordEntity(newEntry);
     setEntries(newEntries);
     nav("/home", { replace: true });
   };

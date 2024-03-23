@@ -1,23 +1,20 @@
 import { Grid, Stack, useMantineColorScheme } from "@mantine/core";
-import { Navbar } from "./Components/Navbar";
-import { useTimer } from "../../Utils/useTimer";
-import { ProgressBar } from "./Components/Progress";
-import { MainModal } from "../../Components/Modals/MainModal";
+import { Navbar } from "./components/Navbar";
+import { useTimer } from "../../utils/useTimer";
+import { ProgressBar } from "./components/Progress";
+import { MainModal } from "../../components/Modals/MainModal";
 import { useDisclosure, useIdle } from "@mantine/hooks";
 import { useContext, useEffect, useMemo } from "react";
-import { store } from "../../Utils/db";
-import { invoke } from "@tauri-apps/api";
-import { Card } from "./Components/Card";
+import { Card } from "./components/Card";
 import { TOTP } from "totp-generator";
-import { AppContext } from "../../Contexts/AppContext";
+import { AppContext } from "../../contexts/AppContext";
 import { useNavigate } from "react-router-dom";
-import { getRandomId } from "../../Utils/randomId";
 
 export type OtpObject = {
   id: string;
   label: string;
   issuer: string;
-  secret?: string;
+  secret: string;
   algorithm: string;
   digits: number;
   counter: number;
@@ -27,7 +24,7 @@ export type OtpObject = {
 };
 
 export default function Home() {
-  const { entries, setEntries } = useContext(AppContext);
+  const { entries } = useContext(AppContext);
 
   const nav = useNavigate();
 
@@ -45,27 +42,6 @@ export default function Home() {
       nav("/", { replace: true });
     }
   }, [idle]);
-
-  useEffect(() => {
-    async function init() {
-      const stored = await store.get<OtpObject[]>("entries");
-      if (stored) {
-        const secrets = await invoke<Record<string, string>>("get_secrets", {
-          entries: stored.map((s) => s.id),
-        });
-        console.log("secrets", secrets);
-        const ents = stored.map((s) => {
-          return {
-            ...s,
-            secret: secrets[s.id],
-          };
-        });
-        console.log(ents);
-        setEntries(ents);
-      }
-    }
-    init();
-  }, []);
 
   const memoisedEntries = useMemo(() => {
     return entries.map((e) => {

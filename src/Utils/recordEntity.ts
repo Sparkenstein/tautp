@@ -1,5 +1,5 @@
 import { store } from "./db";
-import { OtpObject } from "../Pages/Home";
+import { OtpObject } from "../pages/Home";
 
 async function renameEntity(changedEntity: OtpObject) {
   const stored = (await store.get<OtpObject[]>("entries")) || [];

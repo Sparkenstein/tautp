@@ -17,12 +17,12 @@ import {
   recordEntity,
   deleteEntity,
   renameEntity,
-} from "../../Utils/recordEntity";
+} from "../../utils/recordEntity";
 import { OtpObject } from "../Home";
 import { useNavigate, useParams } from "react-router-dom";
 import { IconArrowLeft } from "@tabler/icons-react";
-import { randomColor } from "../../Utils/randomColor";
-import { getRandomId } from "../../Utils/randomId";
+import { randomColor } from "../../utils/randomColor";
+import { getRandomId } from "../../utils/randomId";
 
 function EntryDetails() {
   const { entries, setEntries } = useContext(AppContext);

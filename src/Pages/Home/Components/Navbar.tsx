@@ -1,6 +1,6 @@
 import { ActionIcon, Button, Group, TextInput } from "@mantine/core";
 import { IconSettings } from "@tabler/icons-react";
-import { Sidebar } from "../../../Components/Sidebar";
+import { Sidebar } from "../../../components/Sidebar";
 import { useDisclosure } from "@mantine/hooks";
 
 type NavbarProps = {

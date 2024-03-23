@@ -6,10 +6,10 @@ import { parseOTPAuthURL } from "../../utils/parseOtpAuthURL";
 import { TOTP } from "totp-generator";
 import { memo, useContext } from "react";
 import { AppContext } from "../../contexts/AppContext";
-import { recordEntity } from "../../Utils/recordEntity";
+import { recordEntity } from "../../utils/recordEntity";
 import { useNavigate } from "react-router-dom";
-import { randomColor } from "../../Utils/randomColor";
-import { getRandomId } from "../../Utils/randomId";
+import { randomColor } from "../../utils/randomColor";
+import { getRandomId } from "../../utils/randomId";
 import { notifications } from "@mantine/notifications";
 
 type QrModalProps = {
@@ -18,7 +18,7 @@ type QrModalProps = {
 };
 
 export function MainModalBase({ onClose, opened }: QrModalProps) {
-  const { entries, setEntries } = useContext(AppContext);
+  const { setEntries } = useContext(AppContext);
   // const [manualModalOpened, { close: closeManual, open: openManual }] =
   //   useDisclosure();
   const nav = useNavigate();

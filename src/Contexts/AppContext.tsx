@@ -1,5 +1,5 @@
 import { createContext, useEffect, useState } from "react";
-import { OtpObject } from "../Pages/Home";
+import { OtpObject } from "../pages/Home";
 import { store } from "../utils/db";
 
 type AppContext = {

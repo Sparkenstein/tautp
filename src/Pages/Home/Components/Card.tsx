@@ -7,12 +7,15 @@ import {
   Paper,
   Text,
   Title,
+  Tooltip,
 } from "@mantine/core";
 import classes from "../Home.module.css";
 import { IconCheck, IconCopy, IconEdit } from "@tabler/icons-react";
 import { OtpObject } from "..";
 import { clipboard } from "@tauri-apps/api";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useToggle } from "@mantine/hooks";
 
 type CardProps = {
   e: OtpObject;
@@ -20,7 +23,21 @@ type CardProps = {
 
 export function Card({ e }: CardProps) {
   const nav = useNavigate();
-  // const [opened, { close, open }] = useDisclosure();
+
+  const [isBlur, toggle] = useToggle([false, true]);
+
+  const blur = () => {
+    toggle();
+  };
+
+  useEffect(() => {
+    document.addEventListener("blur", blur);
+
+    return () => {
+      document.removeEventListener("blur", blur);
+    };
+  }, []);
+
   return (
     <Paper
       withBorder
@@ -36,21 +53,28 @@ export function Card({ e }: CardProps) {
       {/* show otp in group of 2's */}
       <Group gap="lg" wrap="nowrap">
         <Avatar radius="md" size={"xl"} color={e.icon}>
-          {e.label[0].toUpperCase()}
+          {e.issuer ? e.issuer[0].toUpperCase() : e.label[0].toUpperCase()}
         </Avatar>
         <Flex wrap="nowrap" direction={"column"}>
-          <Title textWrap="nowrap">
+          <Title
+            textWrap="nowrap"
+            className={isBlur ? classes.blur : undefined}
+          >
             {e.otp?.replace(/(\d)(?=(\d{2})+(?!\d))/g, "$1 ")}
           </Title>
           {e.issuer ? (
             <>
-              <Text fw="bolder" size="16px" pt="5px">{`${decodeURIComponent(
-                e.issuer
-              )}`}</Text>
-              <Text size="sm">{decodeURIComponent(e.label || "")}</Text>
+              <Text fw="bolder" size="16px" pt="5px">
+                {decodeURIComponent(e.issuer)}
+              </Text>
+              <Tooltip label={e.label} position="bottom">
+                <Text size="sm">{decodeURIComponent(e.label || "")}</Text>
+              </Tooltip>
             </>
           ) : (
-            <Text>{decodeURIComponent(e.label || "")} </Text>
+            <Tooltip label={e.label} position="bottom">
+              <Text>{decodeURIComponent(e.label || "")} </Text>
+            </Tooltip>
           )}
         </Flex>
       </Group>

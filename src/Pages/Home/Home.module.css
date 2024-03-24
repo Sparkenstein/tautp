@@ -11,6 +11,12 @@
   }
 }
 
+.blur {
+  background-color: white;
+
+  filter: blur(15px);
+}
+
 .editIcon {
   padding: 6px;
   position: absolute;

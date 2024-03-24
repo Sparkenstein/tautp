@@ -135,7 +135,7 @@ function EntryDetails() {
       </Box>
       <Group p="xl">
         <Avatar size={breakpoint ? 320 : "xl"} color={color} radius={"md"}>
-          {label[0]?.toUpperCase()}
+          {issuer ? issuer[0].toUpperCase() : label[0]?.toUpperCase()}
         </Avatar>
       </Group>
       <Stack p="xl" w={breakpoint ? "40%" : "100%"}>

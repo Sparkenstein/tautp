@@ -7,18 +7,17 @@ type ProgressBarProps = {
 export function ProgressBar({ time }: ProgressBarProps) {
   return (
     <Progress.Root
-      size={"xl"}
+      size={"lg"}
       radius={0}
       style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
+        backgroundColor: "white",
+        //   position: "fixed",
+        //   top: 0,
+        //   left: 0,
+        //   right: 0,
       }}
     >
       <Progress.Section
-        striped
-        color={time < 10 ? "red.9" : "teal"}
         value={(time / 30) * 100}
         style={{
           transition: `all ${time === 30 ? "10ms" : "1s"} linear`,

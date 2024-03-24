@@ -23,6 +23,7 @@ export function Card({ e }: CardProps) {
   // const [opened, { close, open }] = useDisclosure();
   return (
     <Paper
+      withBorder
       shadow="xs"
       radius="md"
       p="xl"
@@ -42,11 +43,12 @@ export function Card({ e }: CardProps) {
             {e.otp?.replace(/(\d)(?=(\d{2})+(?!\d))/g, "$1 ")}
           </Title>
           {e.issuer ? (
-            <Text>
-              {`${decodeURIComponent(e.issuer)} (${decodeURIComponent(
-                e.label || ""
-              )})`}
-            </Text>
+            <>
+              <Text fw="bolder" size="16px" pt="5px">{`${decodeURIComponent(
+                e.issuer
+              )}`}</Text>
+              <Text size="sm">{decodeURIComponent(e.label || "")}</Text>
+            </>
           ) : (
             <Text>{decodeURIComponent(e.label || "")} </Text>
           )}

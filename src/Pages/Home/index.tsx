@@ -56,16 +56,19 @@ export default function Home() {
   return (
     <Stack
       h="100%"
-      bg={colorScheme === "dark" ? "dark" : "white"}
+      bg={colorScheme === "dark" ? "dark.9" : "white"}
       style={{
         overflow: "auto",
       }}
     >
-      <Navbar openMainModal={open} search={""} setSearch={() => {}} />
+      <Navbar
+        openMainModal={open}
+        search={""}
+        setSearch={() => {}}
+        time={time}
+      />
 
       <MainModal onClose={close} opened={mainModalOpen} />
-
-      <ProgressBar time={time} />
 
       <Grid p="md" align="stretch" justify="start" style={{ height: "100%" }}>
         {memoisedEntries.map((e) => (

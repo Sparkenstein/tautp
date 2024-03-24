@@ -7,6 +7,7 @@ import {
   Group,
   Stack,
   TextInput,
+  useMantineColorScheme,
 } from "@mantine/core";
 import { parseOTPAuthURL } from "../../utils/parseOtpAuthURL";
 import { useInputState, useMediaQuery } from "@mantine/hooks";
@@ -45,6 +46,7 @@ function EntryDetails() {
   const [color, setColor] = useState(entity?.icon || "blue");
 
   const breakpoint = useMediaQuery("(min-width: 768px)");
+  const { colorScheme } = useMantineColorScheme();
 
   useEffect(() => {
     setEntity({
@@ -113,7 +115,13 @@ function EntryDetails() {
   };
 
   return (
-    <Group justify="center" p="md" align="start">
+    <Group
+      justify="center"
+      p="md"
+      align="start"
+      h="100%"
+      bg={colorScheme === "dark" ? "dark.9" : "white"}
+    >
       <Box pos={"absolute"} left={20}>
         <ActionIcon
           variant="transparent"

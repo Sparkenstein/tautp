@@ -61,6 +61,8 @@ export const Sidebar = ({ closeDrawer, drawerOpened }: Props) => {
           label="Theme"
         />
         <Divider />
+        <Switch size="md" onChange={() => {}} label="Blur mode" />
+        <Divider />
         <Group>
           <Button onClick={openImport}>Import</Button>
         </Group>

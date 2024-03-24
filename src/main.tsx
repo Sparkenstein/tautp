@@ -36,16 +36,16 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 );
 
 const myColor: MantineColorsTuple = [
-  "#f2f0ff",
-  "#e0dff2",
-  "#bfbdde",
-  "#9b98ca",
-  "#7d79ba",
-  "#6a65b0",
-  "#605bac",
-  "#504c97",
-  "#464388",
-  "#3b3979",
+  "#ffeaf3",
+  "#fdd4e1",
+  "#f4a7bf",
+  "#ec779c",
+  "#e64f7e",
+  "#e3356b",
+  "#e22762",
+  "#c91a52",
+  "#b41149",
+  "#9f003e",
 ];
 
 const theme = createTheme({
@@ -56,7 +56,7 @@ const theme = createTheme({
     //   },
     // },
   },
-  primaryColor: "pink",
+  primaryColor: "brand",
   colors: {
     brand: myColor,
   },

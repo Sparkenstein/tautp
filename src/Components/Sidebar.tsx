@@ -42,6 +42,8 @@ export const Sidebar = ({ closeDrawer, drawerOpened }: Props) => {
     />
   );
 
+  const event = new CustomEvent("blur");
+
   return (
     <Drawer
       offset={8}
@@ -61,7 +63,13 @@ export const Sidebar = ({ closeDrawer, drawerOpened }: Props) => {
           label="Theme"
         />
         <Divider />
-        <Switch size="md" onChange={() => {}} label="Blur mode" />
+        <Switch
+          size="md"
+          onChange={() => {
+            document.dispatchEvent(event);
+          }}
+          label="Blur mode"
+        />
         <Divider />
         <Group>
           <Button onClick={openImport}>Import</Button>
